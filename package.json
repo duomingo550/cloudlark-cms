@@ -18,6 +18,14 @@
   "engines": {
     "node": ">=22.14.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duomingo550/cloudlark-cms.git"
+  },
+  "bugs": {
+    "url": "https://github.com/duomingo550/cloudlark-cms/issues"
+  },
+  "homepage": "https://github.com/duomingo550/cloudlark-cms#readme",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

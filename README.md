@@ -104,7 +104,7 @@ See [ROADMAP.md](ROADMAP.md) for the planned direction.
 ### Install and run
 
 ```bash
-git clone https://github.com/YOUR_NAME/cloudlark-cms.git
+git clone https://github.com/duomingo550/cloudlark-cms.git
 cd cloudlark-cms
 pnpm install
 cp .env.example .env

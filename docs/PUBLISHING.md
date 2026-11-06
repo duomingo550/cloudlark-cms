@@ -12,21 +12,17 @@ cloudlark-cms
 
 不要勾选自动生成 README、.gitignore 或 License，因为项目中已经有了。
 
-## 2. 替换公开占位符
+## 2. 检查公开信息
 
-把下面两个文件中的 `YOUR_NAME` 和 `OWNER` 换成你的 GitHub 用户名：
-
-- `README.md`
-- `.github/ISSUE_TEMPLATE/config.yml`
-
-例如用户名为 `yunque-mingshu`：
+仓库已经按 GitHub 账号 `duomingo550` 配置：
 
 ```text
-YOUR_NAME → yunque-mingshu
-OWNER     → yunque-mingshu
+Repository: https://github.com/duomingo550/cloudlark-cms
+Owner: duomingo550
 ```
 
-同时确认 `LICENSE` 中的版权署名。如果不希望使用“云雀明叔”作为版权署名，可以改成真实姓名。
+如果需要改用其他账号或真实姓名，请在推送前修改 `README.md`、`package.json` 和
+`.github/ISSUE_TEMPLATE/config.yml`。
 
 ## 3. 初始化 Git
 
@@ -42,7 +38,7 @@ git add .
 git status
 git commit -m "feat: initial Cloud Lark CMS alpha"
 
-git remote add origin https://github.com/YOUR_NAME/cloudlark-cms.git
+git remote add origin https://github.com/duomingo550/cloudlark-cms.git
 git push -u origin main
 ```
 
