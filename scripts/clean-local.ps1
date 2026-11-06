@@ -11,6 +11,8 @@ $targets = @(
   'cloudlark.db-shm',
   'cloudlark.db-wal',
   'ci-build.db',
+  'verify-final.db',
+  'final-test.db',
   'media',
   'tsconfig.tsbuildinfo'
 )
@@ -30,6 +32,27 @@ foreach ($name in $targets) {
   }
   Remove-Item -LiteralPath $resolved -Recurse -Force
   Write-Host "Removed $resolved"
+}
+
+foreach ($pattern in @(
+  '_verify-*.ts',
+  'verify-tmp.db*',
+  'tmp-check.db*',
+  '*.db-journal'
+)) {
+  Get-ChildItem -LiteralPath $root -Filter $pattern -Force -ErrorAction SilentlyContinue |
+    ForEach-Object {
+      Remove-Item -LiteralPath $_.FullName -Recurse -Force
+      Write-Host "Removed $($_.FullName)"
+    }
+}
+
+foreach ($name in @('.dsh', '.penguinharness')) {
+  $target = Join-Path $root $name
+  if (Test-Path -LiteralPath $target) {
+    Remove-Item -LiteralPath $target -Recurse -Force
+    Write-Host "Removed $target"
+  }
 }
 
 Write-Host 'Local secrets and generated files are clean.'

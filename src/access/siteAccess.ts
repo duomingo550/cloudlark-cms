@@ -114,6 +114,11 @@ export const canReadSite: Access = async ({ req }) => {
   return siteIds.length ? ({ site: { in: siteIds } } as Where) : false
 }
 
+export const uploadedFileRead: Access = async (args) => {
+  if (args.isReadingStaticFile) return true
+  return canReadSite(args)
+}
+
 export const memberRead: Access = async ({ req }) => {
   if (!req.user) return false
   if (isPlatformAdmin(req.user)) return true

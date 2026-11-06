@@ -24,6 +24,17 @@ const SORT_BY_COLLECTION: Record<string, string> = {
   'comic-series': '-updatedAt',
 }
 
+const SAFE_FILTER_FIELDS: Record<string, Set<string>> = {
+  articles: new Set(['featuredRank']),
+  tutorials: new Set(['durationMinutes']),
+  tools: new Set(['pricing']),
+  products: new Set(['kind', 'statusLabel']),
+  tracks: new Set(['featuredRank']),
+  'learning-paths': new Set(['position']),
+  skills: new Set(['group', 'level']),
+  'comic-series': new Set(['status']),
+}
+
 export async function getSections(siteId: string | number) {
   const payload = await getPayloadClient()
   const result = await payload.find({
@@ -64,17 +75,21 @@ export async function getSectionByPath(routePath: string) {
   return { site, section: result.docs[0] || null }
 }
 
-export function parseSimpleFilter(filter?: string | null): Where {
+export function parseSimpleFilter(
+  collection: string,
+  filter?: string | null,
+): Where {
   if (!filter) return {}
   const [field, value] = filter.split('=').map((part) => part.trim())
-  if (!field || !value) return {}
+  if (!field || !value || !SAFE_FILTER_FIELDS[collection]?.has(field)) return {}
   return { [field]: { equals: value } }
 }
 
 export async function getSectionEntries(section: any, limit = 100) {
   if (!section?.sourceCollection) return []
+  if (!SAFE_FILTER_FIELDS[section.sourceCollection]) return []
   const payload = await getPayloadClient()
-  const filter = parseSimpleFilter(section.filter)
+  const filter = parseSimpleFilter(section.sourceCollection, section.filter)
   const where: Where = {
     and: [
       { site: { equals: section.site?.id || section.site } },

@@ -7,8 +7,17 @@ node_modules/
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
 *.tsbuildinfo
 media/
 public/media/
 pnpm-debug.log*
 coverage/
+
+# Temporary verification and local harness scratch files
+_verify-*.ts
+scripts/_check-*.ts
+verify-tmp.db*
+tmp-check.db*
+.dsh/
+.penguinharness/

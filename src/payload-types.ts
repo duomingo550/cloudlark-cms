@@ -319,6 +319,8 @@ export interface Site {
   createdAt: string;
 }
 /**
+ * 单张图片最大 10 MB。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -327,7 +329,7 @@ export interface Media {
   alt: string;
   caption?: string | null;
   credit?: string | null;
-  site?: (number | null) | Site;
+  site: number | Site;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -519,7 +521,7 @@ export interface AudioAsset {
   durationSeconds?: number | null;
   license?: string | null;
   rightsOwner?: string | null;
-  site?: (number | null) | Site;
+  site: number | Site;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -533,7 +535,7 @@ export interface AudioAsset {
   focalY?: number | null;
 }
 /**
- * 支持 ZIP 等数字商品文件。公开访问策略将在下载接口阶段进一步收紧。
+ * 支持 ZIP、PDF，单个文件最大 200 MB。公开访问策略将在下载接口阶段进一步收紧。
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "download-assets".
@@ -544,7 +546,7 @@ export interface DownloadAsset {
   version?: string | null;
   checksum?: string | null;
   accessPolicy?: ('public' | 'unlisted' | 'entitled') | null;
-  site?: (number | null) | Site;
+  site: number | Site;
   updatedAt: string;
   createdAt: string;
   url?: string | null;

@@ -3,6 +3,13 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { uploadSizeLimit } from '@/hooks/uploadLimit'
+import { enforceStorageQuota } from '@/hooks/storageQuota'
+import {
+  canCreateForSite,
+  canManageSiteContent,
+  uploadedFileRead,
+} from '@/access/siteAccess'
+import { siteField } from '@/fields/common'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,13 +22,16 @@ export const Media: CollectionConfig = {
     description: '单张图片最大 10 MB。',
   },
   access: {
-    create: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
-    read: () => true,
-    update: ({ req }) => Boolean(req.user),
+    create: canCreateForSite,
+    delete: canManageSiteContent,
+    read: uploadedFileRead,
+    update: canManageSiteContent,
   },
   hooks: {
-    beforeChange: [uploadSizeLimit(10 * 1024 * 1024)],
+    beforeChange: [
+      uploadSizeLimit(10 * 1024 * 1024),
+      enforceStorageQuota,
+    ],
   },
   upload: {
     staticDir: path.resolve(dirname, '../../media/images'),
@@ -51,14 +61,6 @@ export const Media: CollectionConfig = {
       type: 'text',
       label: '来源或版权',
     },
-    {
-      name: 'site',
-      type: 'relationship',
-      relationTo: 'sites',
-      index: true,
-      admin: {
-        position: 'sidebar',
-      },
-    },
+    siteField,
   ],
 }

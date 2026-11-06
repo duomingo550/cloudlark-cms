@@ -3,6 +3,13 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { uploadSizeLimit } from '@/hooks/uploadLimit'
+import { enforceStorageQuota } from '@/hooks/storageQuota'
+import {
+  canCreateForSite,
+  canManageSiteContent,
+  uploadedFileRead,
+} from '@/access/siteAccess'
+import { siteField } from '@/fields/common'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,13 +22,16 @@ export const AudioAssets: CollectionConfig = {
     description: '支持 MP3、M4A、AAC、OGG。第一版建议单文件不超过 50MB。',
   },
   access: {
-    create: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
-    read: () => true,
-    update: ({ req }) => Boolean(req.user),
+    create: canCreateForSite,
+    delete: canManageSiteContent,
+    read: uploadedFileRead,
+    update: canManageSiteContent,
   },
   hooks: {
-    beforeChange: [uploadSizeLimit(50 * 1024 * 1024)],
+    beforeChange: [
+      uploadSizeLimit(50 * 1024 * 1024),
+      enforceStorageQuota,
+    ],
   },
   upload: {
     staticDir: path.resolve(dirname, '../../media/audio'),
@@ -56,14 +66,6 @@ export const AudioAssets: CollectionConfig = {
       type: 'text',
       label: '版权所有者',
     },
-    {
-      name: 'site',
-      type: 'relationship',
-      relationTo: 'sites',
-      index: true,
-      admin: {
-        position: 'sidebar',
-      },
-    },
+    siteField,
   ],
 }

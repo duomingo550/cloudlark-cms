@@ -189,6 +189,7 @@ Local SQLite:
 ```text
 DATABASE_ADAPTER=sqlite
 DATABASE_URL=file:./cloudlark.db
+ALLOWED_HOSTS=localhost,127.0.0.1
 ```
 
 PostgreSQL:
@@ -201,6 +202,10 @@ DATABASE_URL=postgres://user:password@host:5432/cloudlark
 Production deployments must replace local media storage with object storage,
 configure HTTPS, and use a strong `PAYLOAD_SECRET`.
 
+Set `ALLOWED_HOSTS` to the comma-separated public hosts served by the
+deployment. In production, unknown hosts are rejected instead of falling back
+to the default site.
+
 Before sharing or archiving the folder, remove local secrets and generated data
 on Windows:
 
@@ -212,7 +217,7 @@ Add `-IncludeDependencies` to remove `node_modules` as well.
 
 ## Project status
 
-Current release: **v0.1.0-alpha.1**
+Current release: **v0.1.0-alpha.2**
 
 What works:
 

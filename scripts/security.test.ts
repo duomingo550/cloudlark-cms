@@ -19,6 +19,8 @@ test('allows only safe link protocols', () => {
   assert.equal(safeHref('javascript:alert(1)'), null)
   assert.equal(safeHref('data:text/html,alert(1)'), null)
   assert.equal(safeHref('//evil.com'), null)
+  assert.equal(safeHref('/\\evil.com'), null)
+  assert.equal(safeHref('/\t/evil.com'), null)
 })
 
 test('external redirects require absolute HTTP(S)', () => {

@@ -77,7 +77,7 @@ small-business, multi-tenant, content-management
 建议标签：
 
 ```text
-v0.1.0-alpha.1
+v0.1.0-alpha.2
 ```
 
 标题：

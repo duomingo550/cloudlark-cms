@@ -1,5 +1,7 @@
 import type { Field } from 'payload'
 
+import { adminOnlyField } from '@/access/siteAccess'
+
 export const siteField: Field = {
   name: 'site',
   type: 'relationship',
@@ -8,6 +10,9 @@ export const siteField: Field = {
   index: true,
   admin: {
     position: 'sidebar',
+  },
+  access: {
+    update: adminOnlyField,
   },
 }
 

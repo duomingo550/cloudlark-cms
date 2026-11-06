@@ -2,6 +2,7 @@ export function safeHref(value?: string | null) {
   if (!value) return null
   const raw = value.trim()
   if (!raw) return null
+  if (raw.includes('\\') || /[\u0000-\u001f\u007f]/.test(raw)) return null
   if (/^\/(?!\/)/.test(raw)) return raw
   if (/^mailto:[^\s]+$/i.test(raw)) return raw
   if (/^https?:\/\//i.test(raw)) return raw

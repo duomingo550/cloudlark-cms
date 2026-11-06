@@ -2,6 +2,7 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  agentRules: false,
   poweredByHeader: false,
   reactStrictMode: true,
   serverExternalPackages: ['sharp'],
@@ -22,6 +23,26 @@ const nextConfig: NextConfig = {
           },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000',
+          },
+          {
+            key: 'Content-Security-Policy-Report-Only',
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "frame-ancestors 'self'",
+              "img-src 'self' data: blob: https:",
+              "media-src 'self' blob: https:",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+              "connect-src 'self' https:",
+              'frame-src https://www.youtube.com https://player.bilibili.com https://player.vimeo.com',
+            ].join('; '),
+          },
         ],
       },
     ]

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0-alpha.2 - 2026-11-06
+
+Tenant-isolation and final release-hardening update.
+
+- Scope image, audio, and download collection mutations to site membership
+- Keep uploaded files directly readable while hiding metadata listings
+- Prevent editors from moving content between sites
+- Block backslash and control-character redirect bypasses
+- Add HTTP upload preflight limits and per-site storage quotas
+- Add `ALLOWED_HOSTS` and reject unknown production hosts
+- Add CSP Report-Only and HSTS headers
+- Whitelist section filter fields and content collections
+- Ignore and clean local verification/harness scratch artifacts
+
 ## 0.1.0-alpha.1 - 2026-11-06
 
 Security and release-readiness update.

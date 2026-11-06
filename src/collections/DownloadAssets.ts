@@ -3,6 +3,13 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { uploadSizeLimit } from '@/hooks/uploadLimit'
+import { enforceStorageQuota } from '@/hooks/storageQuota'
+import {
+  canCreateForSite,
+  canManageSiteContent,
+  uploadedFileRead,
+} from '@/access/siteAccess'
+import { siteField } from '@/fields/common'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,13 +22,16 @@ export const DownloadAssets: CollectionConfig = {
     description: '支持 ZIP、PDF，单个文件最大 200 MB。公开访问策略将在下载接口阶段进一步收紧。',
   },
   access: {
-    create: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
-    read: () => true,
-    update: ({ req }) => Boolean(req.user),
+    create: canCreateForSite,
+    delete: canManageSiteContent,
+    read: uploadedFileRead,
+    update: canManageSiteContent,
   },
   hooks: {
-    beforeChange: [uploadSizeLimit(200 * 1024 * 1024)],
+    beforeChange: [
+      uploadSizeLimit(200 * 1024 * 1024),
+      enforceStorageQuota,
+    ],
   },
   upload: {
     staticDir: path.resolve(dirname, '../../media/downloads'),
@@ -57,14 +67,6 @@ export const DownloadAssets: CollectionConfig = {
         { label: '授权后下载', value: 'entitled' },
       ],
     },
-    {
-      name: 'site',
-      type: 'relationship',
-      relationTo: 'sites',
-      index: true,
-      admin: {
-        position: 'sidebar',
-      },
-    },
+    siteField,
   ],
 }
