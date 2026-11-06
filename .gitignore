@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.turbo/
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+media/
+public/media/
+pnpm-debug.log*
+coverage/

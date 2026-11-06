@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/OWNER/cloudlark-cms/security/advisories/new
+    about: Report vulnerabilities privately.
+  - name: Architecture notes
+    url: https://github.com/OWNER/cloudlark-cms/blob/main/docs/ARCHITECTURE.md
+    about: Read the content model and design before proposing large changes.

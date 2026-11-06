@@ -1,0 +1,31 @@
+name: Real-world feedback
+description: Share how this project fits or does not fit a real use case
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Your use case
+      description: What kind of website or content are you trying to publish?
+    validations:
+      required: true
+  - type: textarea
+    id: useful
+    attributes:
+      label: What looks useful?
+  - type: textarea
+    id: missing
+    attributes:
+      label: What is missing or confusing?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What are you using today?
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, customer data, and private server information.
+          required: true

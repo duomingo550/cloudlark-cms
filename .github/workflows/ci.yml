@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      PAYLOAD_SECRET: ci-only-secret-not-for-production
+      DATABASE_ADAPTER: sqlite
+      DATABASE_URL: file:./ci.db
+      NEXT_PUBLIC_CMS_URL: http://127.0.0.1:3000
+      SEED_ADMIN_EMAIL: admin@example.com
+      SEED_ADMIN_PASSWORD: change-this-password
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm seed
+      - run: pnpm check
+      - run: pnpm build
+      - run: |
+          pnpm start > /tmp/cloudlark.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          pnpm smoke
