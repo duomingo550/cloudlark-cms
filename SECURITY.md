@@ -25,6 +25,7 @@ Include:
 
 ## Known production hardening requirements
 
+- Run `pnpm audit --prod --audit-level high` before each release.
 - Replace local media storage with object storage and a CDN.
 - Use HTTPS and a strong `PAYLOAD_SECRET`.
 - Change all seeded admin credentials.

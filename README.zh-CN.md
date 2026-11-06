@@ -54,6 +54,8 @@
 
 ## 本地运行
 
+需要 Node.js 22.23.4 或更新版本。
+
 ```bash
 pnpm install
 cp .env.example .env

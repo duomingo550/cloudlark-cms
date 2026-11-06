@@ -2,6 +2,7 @@ import React, { type ReactNode } from 'react'
 
 import { AudioPlayer } from '@/components/site/AudioPlayer'
 import { mediaUrl } from '@/lib/content'
+import { safeExternalUrl, safeHref } from '@/lib/url'
 
 function formatText(text: string, format = 0, key?: React.Key): ReactNode {
   let node: ReactNode = text
@@ -19,7 +20,14 @@ function lexicalChildren(children: any[] = []): ReactNode {
     }
     if (child.type === 'linebreak') return <br key={index} />
     if (child.type === 'link') {
-      const href = child.fields?.url || '#'
+      const href = safeHref(child.fields?.url)
+      if (!href) {
+        return (
+          <React.Fragment key={index}>
+            {lexicalChildren(child.children)}
+          </React.Fragment>
+        )
+      }
       return (
         <a href={href} key={index} rel="noopener">
           {lexicalChildren(child.children)}
@@ -104,6 +112,7 @@ function videoEmbed(provider: string, rawUrl: string) {
 function VideoBlock({ block }: { block: any }) {
   const embed = videoEmbed(block.provider, block.url)
   const poster = mediaUrl(block.poster)
+  const externalUrl = safeExternalUrl(block.url)
   return (
     <figure className="content-video">
       {embed ? (
@@ -119,8 +128,8 @@ function VideoBlock({ block }: { block: any }) {
       ) : null}
       {block.title && <figcaption>{block.title}</figcaption>}
       {block.caption && <p>{block.caption}</p>}
-      {!embed && (
-        <a className="text-link" href={block.url} rel="noopener" target="_blank">
+      {!embed && externalUrl && (
+        <a className="text-link" href={externalUrl} rel="noopener" target="_blank">
           在新窗口打开视频 ↗
         </a>
       )}
@@ -170,7 +179,8 @@ function ChartBlock({ block }: { block: any }) {
 function DownloadBlock({ block }: { block: any }) {
   const file = block.file
   const src = mediaUrl(file)
-  if (!src) return null
+  const href = safeHref(src)
+  if (!href) return null
   return (
     <div className="download-card">
       <div>
@@ -182,7 +192,7 @@ function DownloadBlock({ block }: { block: any }) {
           {file?.filesize ? ` · ${Math.round(file.filesize / 1024 / 1024)} MB` : ''}
         </span>
       </div>
-      <a download href={src}>
+      <a download href={href}>
         {block.buttonLabel || '下载文件'} ↓
       </a>
     </div>

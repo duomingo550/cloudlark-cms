@@ -9,6 +9,7 @@ import {
   getSectionEntries,
 } from '@/lib/content'
 import { pageMetadata } from '@/lib/seo'
+import { safeExternalUrl } from '@/lib/url'
 
 type Props = {
   params: Promise<{ section: string }>
@@ -41,7 +42,8 @@ export default async function SectionPage({ params }: Props) {
 
   const { site, section } = data
   if (section.kind === 'external') {
-    if (section.externalUrl) redirect(section.externalUrl)
+    const externalUrl = safeExternalUrl(section.externalUrl)
+    if (externalUrl) redirect(externalUrl)
     notFound()
   }
 

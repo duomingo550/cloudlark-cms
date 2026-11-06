@@ -77,13 +77,13 @@ small-business, multi-tenant, content-management
 建议标签：
 
 ```text
-v0.1.0-alpha
+v0.1.0-alpha.1
 ```
 
 标题：
 
 ```text
-Cloud Lark CMS — first public alpha
+Cloud Lark CMS — security-ready public alpha
 ```
 
 Release 说明直接引用 `CHANGELOG.md`，并明确：

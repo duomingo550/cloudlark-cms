@@ -152,7 +152,17 @@ async function ensureUser() {
   const email = process.env.SEED_ADMIN_EMAIL || 'admin@example.com'
   const password = process.env.SEED_ADMIN_PASSWORD || 'change-this-password'
   const existing = await findOne('users', { email: { equals: email } })
-  if (existing) return existing
+  if (existing) {
+    if (process.env.SEED_RESET_ADMIN_PASSWORD === 'true') {
+      return payload.update({
+        collection: 'users',
+        id: existing.id,
+        data: { password },
+        overrideAccess: true,
+      })
+    }
+    return existing
+  }
   return payload.create({
     collection: 'users',
     data: {

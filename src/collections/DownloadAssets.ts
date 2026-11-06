@@ -2,6 +2,8 @@ import type { CollectionConfig } from 'payload'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { uploadSizeLimit } from '@/hooks/uploadLimit'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const DownloadAssets: CollectionConfig = {
@@ -10,7 +12,7 @@ export const DownloadAssets: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: '媒体',
-    description: '支持 ZIP 等数字商品文件。公开访问策略将在下载接口阶段进一步收紧。',
+    description: '支持 ZIP、PDF，单个文件最大 200 MB。公开访问策略将在下载接口阶段进一步收紧。',
   },
   access: {
     create: ({ req }) => Boolean(req.user),
@@ -18,9 +20,13 @@ export const DownloadAssets: CollectionConfig = {
     read: () => true,
     update: ({ req }) => Boolean(req.user),
   },
+  hooks: {
+    beforeChange: [uploadSizeLimit(200 * 1024 * 1024)],
+  },
   upload: {
     staticDir: path.resolve(dirname, '../../media/downloads'),
     mimeTypes: ['application/zip', 'application/x-zip-compressed', 'application/pdf'],
+    pasteURL: false,
   },
   fields: [
     {

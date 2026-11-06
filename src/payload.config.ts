@@ -30,6 +30,15 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 const serverURL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:3000'
+const payloadSecret = process.env.PAYLOAD_SECRET || ''
+if (
+  payloadSecret.length < 32 ||
+  payloadSecret === 'replace-with-a-long-random-secret'
+) {
+  throw new Error(
+    'PAYLOAD_SECRET must be at least 32 characters and must not use the example value',
+  )
+}
 const databaseAdapter =
   process.env.DATABASE_ADAPTER === 'postgres'
     ? postgresAdapter({
@@ -87,10 +96,20 @@ export default buildConfig({
   i18n: {
     supportedLanguages: { zh },
   },
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: payloadSecret,
   serverURL,
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  upload: {
+    abortOnLimit: true,
+    limits: {
+      fields: 20,
+      fieldSize: 1024 * 1024,
+      files: 1,
+      fileSize: 200 * 1024 * 1024,
+    },
+    requestSizeLimit: 201 * 1024 * 1024,
   },
 })

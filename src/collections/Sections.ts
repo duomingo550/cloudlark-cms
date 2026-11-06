@@ -153,6 +153,10 @@ export const Sections: CollectionConfig = {
       admin: {
         condition: (_, siblingData) => siblingData?.kind === 'external',
       },
+      validate: (value: unknown) =>
+        !value ||
+        (typeof value === 'string' && /^https?:\/\//i.test(value)) ||
+        '外部 URL 必须使用 http(s)://',
     },
   ],
 }

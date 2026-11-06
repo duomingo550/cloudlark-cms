@@ -51,6 +51,11 @@ export const Sites: CollectionConfig = {
           admin: {
             description: '例如 www.example.com，不含协议',
           },
+          validate: (value: unknown) =>
+            typeof value === 'string' &&
+            /^(?=.{1,253}$)[a-z0-9.-]+$/i.test(value.trim())
+              ? true
+              : '域名格式不正确，请不要包含协议、路径或空格',
         },
       ],
     },
@@ -71,6 +76,10 @@ export const Sites: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+      validate: (value: unknown) =>
+        !value ||
+        (typeof value === 'string' && /^https?:\/\//i.test(value)) ||
+        '公开访问地址必须使用 http(s)://',
     },
     {
       name: 'brand',

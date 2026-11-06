@@ -1,2 +1,7 @@
 allowBuilds:
   esbuild: true
+
+overrides:
+  dompurify: ^3.4.17
+  esbuild: ^0.28.2
+  happy-dom: ^21.0.4

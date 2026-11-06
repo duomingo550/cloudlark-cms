@@ -2,6 +2,8 @@ import type { CollectionConfig } from 'payload'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { uploadSizeLimit } from '@/hooks/uploadLimit'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const Media: CollectionConfig = {
@@ -10,6 +12,7 @@ export const Media: CollectionConfig = {
   admin: {
     useAsTitle: 'filename',
     group: '媒体',
+    description: '单张图片最大 10 MB。',
   },
   access: {
     create: ({ req }) => Boolean(req.user),
@@ -17,9 +20,13 @@ export const Media: CollectionConfig = {
     read: () => true,
     update: ({ req }) => Boolean(req.user),
   },
+  hooks: {
+    beforeChange: [uploadSizeLimit(10 * 1024 * 1024)],
+  },
   upload: {
     staticDir: path.resolve(dirname, '../../media/images'),
     mimeTypes: ['image/*'],
+    pasteURL: false,
     imageSizes: [
       { name: 'thumbnail', width: 480, height: undefined, position: 'centre' },
       { name: 'card', width: 960, height: undefined, position: 'centre' },

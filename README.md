@@ -97,7 +97,7 @@ See [ROADMAP.md](ROADMAP.md) for the planned direction.
 
 ### Requirements
 
-- Node.js 22.14 or newer
+- Node.js 22.23.4 or newer
 - pnpm 10 or newer
 - Optional: ffmpeg for future audio transcoding
 
@@ -108,6 +108,9 @@ git clone https://github.com/duomingo550/cloudlark-cms.git
 cd cloudlark-cms
 pnpm install
 cp .env.example .env
+# Generate a value with:
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# Then replace the example PAYLOAD_SECRET with that value
 pnpm seed
 pnpm dev
 ```
@@ -127,10 +130,16 @@ SEED_ADMIN_PASSWORD=change-this-password
 The seeded defaults are only for local development. Change both values before
 using a persistent database.
 
+To initialize an existing local demo user with a new password, set
+`SEED_RESET_ADMIN_PASSWORD=true` before running `pnpm seed`. This updates the
+existing user instead of only returning it.
+
 ### Build
 
 ```bash
 pnpm check
+pnpm test:security
+pnpm audit --prod --audit-level high
 pnpm build
 pnpm start
 pnpm smoke
@@ -192,9 +201,18 @@ DATABASE_URL=postgres://user:password@host:5432/cloudlark
 Production deployments must replace local media storage with object storage,
 configure HTTPS, and use a strong `PAYLOAD_SECRET`.
 
+Before sharing or archiving the folder, remove local secrets and generated data
+on Windows:
+
+```powershell
+./scripts/clean-local.ps1
+```
+
+Add `-IncludeDependencies` to remove `node_modules` as well.
+
 ## Project status
 
-Current release: **v0.1.0-alpha**
+Current release: **v0.1.0-alpha.1**
 
 What works:
 

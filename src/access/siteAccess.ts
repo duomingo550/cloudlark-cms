@@ -1,4 +1,4 @@
-import type { Access, FieldAccess, Where } from 'payload'
+import type { Access, FieldAccess, PayloadRequest, Where } from 'payload'
 
 type UserWithRole = {
   id: number | string
@@ -14,6 +14,23 @@ export const currentUser = (req: { user?: unknown }) =>
 export const adminOnly: Access = ({ req }) => isPlatformAdmin(req.user)
 
 export const adminOnlyField: FieldAccess = ({ req }) => isPlatformAdmin(req.user)
+
+export const canAccessAdmin = async ({
+  req,
+}: {
+  req: PayloadRequest
+}): Promise<boolean> => {
+  if (!req.user) return false
+  if (isPlatformAdmin(req.user)) return true
+  const membership = await req.payload.count({
+    collection: 'memberships',
+    overrideAccess: true,
+    where: {
+      user: { equals: (req.user as UserWithRole).id },
+    },
+  })
+  return membership.totalDocs > 0
+}
 
 export const authenticated: Access = ({ req }) => Boolean(req.user)
 

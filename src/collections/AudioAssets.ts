@@ -2,6 +2,8 @@ import type { CollectionConfig } from 'payload'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { uploadSizeLimit } from '@/hooks/uploadLimit'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const AudioAssets: CollectionConfig = {
@@ -18,9 +20,13 @@ export const AudioAssets: CollectionConfig = {
     read: () => true,
     update: ({ req }) => Boolean(req.user),
   },
+  hooks: {
+    beforeChange: [uploadSizeLimit(50 * 1024 * 1024)],
+  },
   upload: {
     staticDir: path.resolve(dirname, '../../media/audio'),
     mimeTypes: ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/x-m4a'],
+    pasteURL: false,
   },
   fields: [
     {
