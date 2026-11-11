@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+
 import { ImageResponse } from 'next/og'
 
 import { getPrimarySite } from '@/lib/payload'
@@ -11,19 +14,24 @@ import { getPrimarySite } from '@/lib/payload'
  * 这里每次请求读 `sites` 第一条（getPrimarySite），用它的品牌色与文案画图：换客户、
  * 改文案都不需要重新出图。
  *
- * 字体：实测结论（这是本文件最需要注意的地方）
- * ------------------------------------------
- * next/og 是 Next 内置的 @vercel/og（satori + resvg 已随 next 打包，不需要新依赖），
- * 默认字体只有拉丁字形。中文字形由它内置的 loadDynamicAsset 在**运行时**从 Google
- * Fonts 拉 Noto Sans SC 补上：
- *   - 服务器能访问 fonts.googleapis.com 时：中文正常渲染（本机实测无方框，见提交说明）；
- *   - 访问不到时（内网 / 中国大陆机房等）：中文渲染成方框（□），实测图有 3 次失败 fetch。
- * 因此提供 PREFER_LATIN_TEXT 这一个开关：设为 true 时改用「域名 + 固定英文副标题」，
- * 完全不依赖外部字体。默认 false（中文文案对营销更有用）。
+ * 字体：本地子集，离线也能画中文（这是本文件最需要注意的地方）
+ * --------------------------------------------------------
+ * next/og 是 Next 内置的 @vercel/og（satori + resvg 已随 next 打包，不需要新依赖）。
+ * 它默认只带拉丁字形；遇到 CJK 缺字时会在**运行时**去 Google Fonts 拉 Noto Sans SC，
+ * 服务器访问不到 fonts.googleapis.com（例如国内机房）就渲染成方框（□）。
+ *
+ * 所以这里改为显式传入本地字体 `src/assets/fonts/NotoSansSC-OG-Regular.otf`
+ * （Noto Sans SC Regular 子集，OFL，覆盖 GB2312 6763 个汉字 + 拉丁/标点，
+ * 见同目录 README.md）。字体在模块加载时读一次，之后所有请求复用同一份 Buffer。
+ * 已用「把 globalThis.fetch 打成必失败」的离线脚手架实测：中文正常，fetch 调用 0 次。
+ *
+ * 子集之外的生僻字仍可能触发 @vercel/og 的动态补字（联网时正常，离线时方框）；
+ * 因此保留 PREFER_LATIN_TEXT 开关：设为 true 时改用「域名 + 固定英文副标题」，
+ * 不依赖任何中文字形。默认 false（中文文案对营销更有用）。
  */
 export const runtime = 'nodejs'
 
-/** 设为 true 可彻底摆脱对 Google Fonts 的依赖，代价是站点中文名不上图。 */
+/** 设为 true 时只上图拉丁文案（域名 + 英文副标题），不依赖任何中文字形。 */
 const PREFER_LATIN_TEXT = false
 
 /** 兜底站点名/副标题：sites 缺失（未 seed、DB 未建）时仍然要返回一张合法图片。 */
@@ -38,6 +46,19 @@ export const contentType = 'image/png'
 
 // 站点文案/品牌色随时会在后台改，不能被静态化。
 export const dynamic = 'force-dynamic'
+
+/**
+ * 本地字体路径：`next start` / `next dev` 的 cwd 都是仓库根目录。
+ * 模块级读取（只读一次），请求处理时 await 同一个 Promise，避免每个请求重复读盘。
+ */
+const FONT_PATH = path.join(
+  process.cwd(),
+  'src/assets/fonts/NotoSansSC-OG-Regular.otf',
+)
+const fontDataPromise = readFile(FONT_PATH)
+// 先挂一个空 catch：字体缺失时不要让模块加载阶段出现 unhandledRejection；
+// 真正的错误会在下面 await 时抛出，让路由明确 500，而不是静默退回 Google Fonts。
+void fontDataPromise.catch(() => {})
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
@@ -76,6 +97,9 @@ export default async function OpengraphImage() {
   const subtitle = pick(description, FALLBACK_TAGLINE)
   const footer = pick(name, FALLBACK_NAME)
 
+  // 字体文件在模块加载时已开始读取；这里 await 的是同一个 Promise。
+  const fontData = await fontDataPromise
+
   return new ImageResponse(
     (
       <div
@@ -84,6 +108,7 @@ export default async function OpengraphImage() {
           backgroundColor: '#0b1512',
           display: 'flex',
           flexDirection: 'column',
+          fontFamily: 'NotoSansSC, sans-serif',
           height: '100%',
           justifyContent: 'space-between',
           padding: '64px 80px',
@@ -163,6 +188,16 @@ export default async function OpengraphImage() {
         </div>
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: [
+        {
+          name: 'NotoSansSC',
+          data: fontData,
+          weight: 400,
+          style: 'normal',
+        },
+      ],
+    },
   )
 }

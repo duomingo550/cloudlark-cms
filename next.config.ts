@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   serverExternalPackages: ['sharp'],
+  // OG 路由用 process.cwd() 读本地字体；standalone 输出时把字体一起带进产物。
+  outputFileTracingIncludes: {
+    '/opengraph-image': ['./src/assets/fonts/**'],
+  },
   async headers() {
     return [
       {
