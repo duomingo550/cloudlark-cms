@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { resolveBaseUrl } from '@/lib/siteUrl'
+import { absoluteUrl, resolveBaseUrl } from '@/lib/siteUrl'
 
 export function pageMetadata({
   site,
@@ -28,6 +28,17 @@ export function pageMetadata({
   const image = seo.image?.url || site.seo?.image?.url
   const canonical = path ? `${base}${path}` : undefined
 
+  // 没有显式分享图时回落到动态生成的 /opengraph-image（src/app/opengraph-image.tsx）。
+  // 这里写成绝对 URL 而不是相对路径：相对路径由 metadataBase 补全，而 metadataBase 取的是
+  // sites.publicUrl 原值 —— 当它指向 localhost 时不会跟随 resolveBaseUrl 的环境变量兜底，
+  // 会出现 canonical 用线上域名、og:image 用 localhost 的错位。absoluteUrl 与 base 同源，
+  // 和上面 seo.image 的处理方式保持一致。
+  const width = 1200
+  const height = 630
+  const images = image
+    ? [{ url: image.startsWith('http') ? image : `${base}${image}` }]
+    : [{ url: absoluteUrl(base, '/opengraph-image'), width, height, alt: title }]
+
   return {
     title,
     description,
@@ -37,7 +48,7 @@ export function pageMetadata({
       title,
       description,
       url: canonical,
-      images: image ? [{ url: image.startsWith('http') ? image : `${base}${image}` }] : undefined,
+      images,
       siteName: site.name,
       type: 'website',
     },
