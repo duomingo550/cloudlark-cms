@@ -62,6 +62,7 @@ export default buildConfig({
       titleSuffix: ' · 云雀 CMS',
     },
     components: {
+      beforeNavLinks: ['@/components/admin/DashboardLink'],
       graphics: {
         Icon: '@/components/admin/Icon',
         Logo: '@/components/admin/Logo',

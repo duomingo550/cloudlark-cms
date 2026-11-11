@@ -14,3 +14,28 @@
 .dashboard__label {
   letter-spacing: 0.02em;
 }
+
+// 左侧导航顶部的常驻「仪表板」入口（admin.components.beforeNavLinks）
+.nav-dashboard__link {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 calc(var(--base) * 0.5) calc(var(--base) * -0.5);
+  padding: calc(var(--base) * 0.25) calc(var(--base) * 0.5);
+  border-radius: var(--style-radius-s);
+  color: var(--theme-elevation-800);
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--theme-elevation-1000);
+    background: var(--theme-elevation-100);
+  }
+
+  &--active,
+  &--active:hover,
+  &--active:focus-visible {
+    color: var(--theme-elevation-1000);
+    background: var(--theme-elevation-100);
+    font-weight: 600;
+  }
+}
