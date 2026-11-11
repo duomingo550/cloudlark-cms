@@ -11,6 +11,7 @@ import {
 import { seoFields } from '@/fields/seo'
 import { autoFillSlugAndSite } from '@/hooks/autoFill'
 import { uniquePerSite } from '@/hooks/uniquePerSite'
+import { aiConfigured } from '@/lib/ai'
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
@@ -21,7 +22,16 @@ export const Articles: CollectionConfig = {
     description: '发布后出现在 /news 路径；保存草稿不会上线。',
     components: {
       edit: {
-        beforeDocumentControls: ['@/components/admin/PublishHint'],
+        // 3.93 的 beforeDocumentControls 类型是 CustomComponent[]，接受数组。
+        // AiDraftButton 用 clientProps 显式传入 configured：未配置时按钮禁用；
+        // 不传则组件默认 false（同样禁用），避免误发请求。
+        beforeDocumentControls: [
+          '@/components/admin/PublishHint',
+          {
+            path: '@/components/admin/AiDraftButton',
+            clientProps: { configured: aiConfigured() },
+          },
+        ],
       },
     },
     group: '内容',
