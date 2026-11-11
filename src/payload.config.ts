@@ -93,6 +93,10 @@ export default buildConfig({
   db: databaseAdapter,
   defaultDepth: 2,
   editor: lexicalEditor(),
+  graphQL: {
+    // 生产环境关闭 GraphQL Playground，避免暴露可在生产执行任意查询的调试台。
+    disablePlaygroundInProduction: process.env.NODE_ENV === 'production',
+  },
   i18n: {
     supportedLanguages: { zh },
   },

@@ -149,8 +149,14 @@ async function upsert(
 }
 
 async function ensureUser() {
-  const email = process.env.SEED_ADMIN_EMAIL || 'admin@example.com'
-  const password = process.env.SEED_ADMIN_PASSWORD || 'change-this-password'
+  const email = process.env.SEED_ADMIN_EMAIL
+  const password = process.env.SEED_ADMIN_PASSWORD
+  if (!email || !password) {
+    console.error(
+      '缺少 SEED_ADMIN_EMAIL 或 SEED_ADMIN_PASSWORD：请先自行设置管理员邮箱和口令，再运行 pnpm seed。',
+    )
+    process.exit(1)
+  }
   const existing = await findOne('users', { email: { equals: email } })
   if (existing) {
     if (process.env.SEED_RESET_ADMIN_PASSWORD === 'true') {

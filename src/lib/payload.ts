@@ -35,6 +35,22 @@ export const getCurrentSite = cache(async () => {
   })
   if (exact.docs[0]) return exact.docs[0]
 
+  // 历史数据里可能存着大小写或首尾空格不一致的域名（写入时的归一化只对新数据生效），
+  // 这里用归一化后的值再比对一次，避免大小写不同就匹配失败。
+  const sites = await payload.find({
+    collection: 'sites',
+    depth: 1,
+    limit: 100,
+    overrideAccess: true,
+    pagination: false,
+  })
+  const caseInsensitive = sites.docs.find((candidate) =>
+    (candidate.domains || []).some(
+      (domain) => normalizeHost(domain?.host ?? null) === host,
+    ),
+  )
+  if (caseInsensitive) return caseInsensitive
+
   if (!allowUnmatchedFallback) return null
 
   const fallback = await payload.find({

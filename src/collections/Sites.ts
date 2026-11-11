@@ -43,6 +43,22 @@ export const Sites: CollectionConfig = {
       name: 'domains',
       type: 'array',
       label: '绑定域名',
+      admin: {
+        description: '只填主机名，不含协议和路径',
+      },
+      hooks: {
+        // 域名大小写不敏感：写入前统一 trim + 小写，避免前台匹配失配。
+        beforeValidate: [
+          ({ value }) =>
+            Array.isArray(value)
+              ? value.map((row) =>
+                  row && typeof row === 'object' && typeof row.host === 'string'
+                    ? { ...row, host: row.host.trim().toLowerCase() }
+                    : row,
+                )
+              : value,
+        ],
+      },
       fields: [
         {
           name: 'host',
