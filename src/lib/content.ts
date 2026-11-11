@@ -233,6 +233,7 @@ export async function searchSite(
     { collection: 'products', fields: ['name', 'summary'] },
     { collection: 'tracks', fields: ['title', 'artist'] },
     { collection: 'comic-series', fields: ['title', 'synopsis'] },
+    { collection: 'videos', fields: ['title', 'description'] },
   ] as const
 
   const results = await Promise.all(

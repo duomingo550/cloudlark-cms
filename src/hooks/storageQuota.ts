@@ -1,6 +1,11 @@
 import { APIError, type CollectionBeforeChangeHook } from 'payload'
 
-const UPLOAD_COLLECTIONS = ['media', 'audio-assets', 'download-assets'] as const
+const UPLOAD_COLLECTIONS = [
+  'media',
+  'audio-assets',
+  'download-assets',
+  'video-assets',
+] as const
 
 function idOf(value: unknown) {
   return typeof value === 'object' && value !== null

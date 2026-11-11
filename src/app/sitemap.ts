@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 import {
+  getCollectionEntries,
   getPageBySlug,
   getSectionEntries,
   getSections,
@@ -36,6 +37,7 @@ const DETAIL_ROUTE: Record<string, string> = {
   tracks: 'music',
   'learning-paths': 'learning',
   'comic-series': 'comics',
+  videos: 'videos',
 }
 
 /** 首页 1.0、列表页 0.8、详情 0.6（与需求约定一致）。 */
@@ -138,6 +140,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         PRIORITY.detail,
       )
     }
+  }
+
+  // 视频作品走独立路由（src/app/(frontend)/videos/page.tsx 与 [slug]/page.tsx），
+  // 不依赖 sections 配置即可访问：这里单独收录列表页与详情，避免栏目表没配就整段丢失。
+  // 若后台也建了视频栏目，sections 循环会写入同样的 URL，由 Map 去重。
+  const videos = await getCollectionEntries('videos', site.id, { limit: 500 })
+  const videosUpdatedAt =
+    latest(
+      videos.map((doc: any) => toDate(doc.updatedAt || doc.publishedDate)),
+    ) || siteUpdatedAt
+  add(absoluteUrl(base, '/videos'), videosUpdatedAt, 'daily', PRIORITY.list)
+  for (const video of videos as any[]) {
+    if (!video?.slug) continue
+    add(
+      absoluteUrl(base, `/videos/${video.slug}`),
+      toDate(video.updatedAt || video.publishedDate) || siteUpdatedAt,
+      'weekly',
+      PRIORITY.detail,
+    )
   }
 
   // 联系页是静态路由（src/app/(frontend)/contact/page.tsx），不在 sections 表里，

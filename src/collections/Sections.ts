@@ -68,6 +68,7 @@ export const Sections: CollectionConfig = {
       options: [
         { label: '资讯', value: 'articles' },
         { label: '教程', value: 'tutorials' },
+        { label: '视频', value: 'videos' },
         { label: '工具', value: 'tools' },
         { label: '产品与服务', value: 'products' },
         { label: '音乐', value: 'tracks' },

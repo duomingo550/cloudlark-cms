@@ -263,6 +263,17 @@ const sections = [
     showOnHome: true,
   },
   {
+    key: 'videos',
+    label: '视频',
+    kind: 'collection',
+    sourceCollection: 'videos',
+    routePath: 'videos',
+    templateKey: 'list',
+    position: 35,
+    visible: true,
+    showOnHome: true,
+  },
+  {
     key: 'learning',
     label: '学习路线',
     kind: 'collection',

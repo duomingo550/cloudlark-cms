@@ -82,6 +82,7 @@ export interface Config {
     media: Media;
     'audio-assets': AudioAsset;
     'download-assets': DownloadAsset;
+    'video-assets': VideoAsset;
     sections: Section;
     sites: Site;
     memberships: Membership;
@@ -109,6 +110,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     'audio-assets': AudioAssetsSelect<false> | AudioAssetsSelect<true>;
     'download-assets': DownloadAssetsSelect<false> | DownloadAssetsSelect<true>;
+    'video-assets': VideoAssetsSelect<false> | VideoAssetsSelect<true>;
     sections: SectionsSelect<false> | SectionsSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
@@ -1390,9 +1392,9 @@ export interface Video {
    */
   videoUrl?: string | null;
   /**
-   * 可留空。媒体库当前只接受图片，视频建议优先使用上面的外链地址
+   * 可留空。上传 mp4/webm/mov 后详情页会内嵌播放；也可改用上面的外链地址
    */
-  videoFile?: (number | null) | Media;
+  videoFile?: (number | null) | VideoAsset;
   /**
    * 可留空；填了会在列表和详情页显示
    */
@@ -1540,6 +1542,32 @@ export interface Video {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * 视频文件（mp4/webm/mov）；用于视频作品与正文内嵌
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "video-assets".
+ */
+export interface VideoAsset {
+  id: number;
+  title: string;
+  duration?: number | null;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
+  site: number | Site;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1816,7 +1844,18 @@ export interface Section {
   label: string;
   kind: 'collection' | 'page' | 'external';
   sourceCollection?:
-    ('articles' | 'tutorials' | 'tools' | 'products' | 'tracks' | 'comic-series' | 'learning-paths' | 'skills') | null;
+    | (
+        | 'articles'
+        | 'tutorials'
+        | 'videos'
+        | 'tools'
+        | 'products'
+        | 'tracks'
+        | 'comic-series'
+        | 'learning-paths'
+        | 'skills'
+      )
+    | null;
   /**
    * 简单条件，例如 kind=agent 或 category=ai-coding
    */
@@ -1981,6 +2020,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'download-assets';
         value: number | DownloadAsset;
+      } | null)
+    | ({
+        relationTo: 'video-assets';
+        value: number | VideoAsset;
       } | null)
     | ({
         relationTo: 'sections';
@@ -3130,6 +3173,26 @@ export interface DownloadAssetsSelect<T extends boolean = true> {
   version?: T;
   checksum?: T;
   accessPolicy?: T;
+  site?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "video-assets_select".
+ */
+export interface VideoAssetsSelect<T extends boolean = true> {
+  title?: T;
+  duration?: T;
   site?: T;
   updatedAt?: T;
   createdAt?: T;

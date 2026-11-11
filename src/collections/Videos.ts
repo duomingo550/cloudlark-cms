@@ -55,11 +55,11 @@ export const Videos: CollectionConfig = {
     {
       name: 'videoFile',
       type: 'upload',
-      relationTo: 'media',
+      relationTo: 'video-assets',
       label: '视频文件',
       admin: {
         description:
-          '可留空。媒体库当前只接受图片，视频建议优先使用上面的外链地址',
+          '可留空。上传 mp4/webm/mov 后详情页会内嵌播放；也可改用上面的外链地址',
       },
     },
     {
