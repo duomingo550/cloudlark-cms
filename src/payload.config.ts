@@ -26,6 +26,7 @@ import { Tools } from '@/collections/Tools'
 import { Tracks } from '@/collections/Tracks'
 import { Tutorials } from '@/collections/Tutorials'
 import { Users } from '@/collections/Users'
+import { Videos } from '@/collections/Videos'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -77,6 +78,7 @@ export default buildConfig({
     Tools,
     Products,
     Tracks,
+    Videos,
     LearningPaths,
     Skills,
     ComicSeries,

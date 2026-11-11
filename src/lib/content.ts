@@ -10,6 +10,7 @@ const DETAIL_ROUTE: Record<string, string> = {
   tracks: 'music',
   'learning-paths': 'learning',
   'comic-series': 'comics',
+  videos: 'videos',
   skills: 'skills',
 }
 
@@ -22,6 +23,7 @@ const SORT_BY_COLLECTION: Record<string, string> = {
   'learning-paths': 'position',
   skills: 'position',
   'comic-series': '-updatedAt',
+  videos: '-publishedDate',
 }
 
 const SAFE_FILTER_FIELDS: Record<string, Set<string>> = {
@@ -33,6 +35,7 @@ const SAFE_FILTER_FIELDS: Record<string, Set<string>> = {
   'learning-paths': new Set(['position']),
   skills: new Set(['group', 'level']),
   'comic-series': new Set(['status']),
+  videos: new Set<string>(),
 }
 
 export async function getSections(siteId: string | number) {
@@ -105,6 +108,35 @@ export async function getSectionEntries(section: any, limit = 100) {
     pagination: false,
     sort: SORT_BY_COLLECTION[section.sourceCollection] || '-updatedAt',
     where,
+  })
+  return result.docs
+}
+
+/**
+ * 按集合直接取已发布条目。
+ *
+ * 给有独立列表路由、但不依赖 sections 配置的集合用（如 /videos）。
+ * 排序沿用 SORT_BY_COLLECTION；集合没有约定时退回 -updatedAt。
+ */
+export async function getCollectionEntries(
+  collection: string,
+  siteId: string | number,
+  options: { limit?: number; sort?: string } = {},
+) {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: collection as any,
+    depth: 2,
+    limit: options.limit ?? 100,
+    overrideAccess: true,
+    pagination: false,
+    sort: options.sort || SORT_BY_COLLECTION[collection] || '-updatedAt',
+    where: {
+      and: [
+        { site: { equals: siteId } },
+        { _status: { equals: 'published' } },
+      ],
+    },
   })
   return result.docs
 }
@@ -246,6 +278,20 @@ export function formatDate(value?: string | null) {
     year: 'numeric',
     timeZone: 'Asia/Shanghai',
   }).format(new Date(value))
+}
+
+/** 秒数 → 5:07 / 1:02:03；无效或非正数返回空串。 */
+export function formatDuration(value?: number | null) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return ''
+  }
+  const total = Math.round(value)
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const seconds = total % 60
+  const mm = String(minutes).padStart(hours > 0 ? 2 : 1, '0')
+  const ss = String(seconds).padStart(2, '0')
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
 export function mediaUrl(value: any) {

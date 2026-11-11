@@ -73,6 +73,7 @@ export interface Config {
     tools: Tool;
     products: Product;
     tracks: Track;
+    videos: Video;
     'learning-paths': LearningPath;
     skills: Skill;
     'comic-series': ComicSery;
@@ -99,6 +100,7 @@ export interface Config {
     tools: ToolsSelect<false> | ToolsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     tracks: TracksSelect<false> | TracksSelect<true>;
+    videos: VideosSelect<false> | VideosSelect<true>;
     'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
     'comic-series': ComicSeriesSelect<false> | ComicSeriesSelect<true>;
@@ -1363,6 +1365,183 @@ export interface Product {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * 视频作品；发布后出现在 /videos
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "videos".
+ */
+export interface Video {
+  id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
+  site: number | Site;
+  title: string;
+  /**
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
+   */
+  slug: string;
+  /**
+   * 可留空
+   */
+  cover?: (number | null) | Media;
+  /**
+   * B 站 / YouTube / Vimeo 页面地址，或自托管的 MP4 直链；与视频文件至少填一个，可留空
+   */
+  videoUrl?: string | null;
+  /**
+   * 可留空。媒体库当前只接受图片，视频建议优先使用上面的外链地址
+   */
+  videoFile?: (number | null) | Media;
+  /**
+   * 可留空；填了会在列表和详情页显示
+   */
+  duration?: number | null;
+  /**
+   * 列表卡片与详情页摘要；可留空
+   */
+  description?: string | null;
+  body?:
+    | (
+        | {
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            image: number | Media;
+            /**
+             * 可留空
+             */
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'image';
+          }
+        | {
+            items?:
+              | {
+                  image: number | Media;
+                  /**
+                   * 可留空
+                   */
+                  caption?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gallery';
+          }
+        | {
+            provider: 'bilibili' | 'youtube' | 'vimeo' | 'tencent' | 'external';
+            /**
+             * 仅允许白名单平台的 https 地址
+             */
+            url: string;
+            /**
+             * 可留空
+             */
+            poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
+            title?: string | null;
+            /**
+             * 可留空
+             */
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'video';
+          }
+        | {
+            track: number | Track;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'audio';
+          }
+        | {
+            title: string;
+            image?: (number | null) | Media;
+            /**
+             * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
+             */
+            dataTable?: string | null;
+            /**
+             * 可留空
+             */
+            source?: string | null;
+            /**
+             * 可留空
+             */
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'chart';
+          }
+        | {
+            images?:
+              | {
+                  image: number | Media;
+                  alt?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            readingMode?: ('vertical' | 'page') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'comicReader';
+          }
+        | {
+            file: number | DownloadAsset;
+            title: string;
+            /**
+             * 可留空
+             */
+            description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
+            buttonLabel?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'fileDownload';
+          }
+      )[]
+    | null;
+  terms?: (number | Term)[] | null;
+  publishedDate?: string | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+    canonical?: string | null;
+    noindex?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "learning-paths".
  */
@@ -1766,6 +1945,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tracks';
         value: number | Track;
+      } | null)
+    | ({
+        relationTo: 'videos';
+        value: number | Video;
       } | null)
     | ({
         relationTo: 'learning-paths';
@@ -2537,6 +2720,119 @@ export interface TracksSelect<T extends boolean = true> {
       };
   terms?: T;
   featuredRank?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        canonical?: T;
+        noindex?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "videos_select".
+ */
+export interface VideosSelect<T extends boolean = true> {
+  site?: T;
+  title?: T;
+  slug?: T;
+  cover?: T;
+  videoUrl?: T;
+  videoFile?: T;
+  duration?: T;
+  description?: T;
+  body?:
+    | T
+    | {
+        richText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        image?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              items?:
+                | T
+                | {
+                    image?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        video?:
+          | T
+          | {
+              provider?: T;
+              url?: T;
+              poster?: T;
+              title?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        audio?:
+          | T
+          | {
+              track?: T;
+              id?: T;
+              blockName?: T;
+            };
+        chart?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              dataTable?: T;
+              source?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        comicReader?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    alt?: T;
+                    id?: T;
+                  };
+              readingMode?: T;
+              id?: T;
+              blockName?: T;
+            };
+        fileDownload?:
+          | T
+          | {
+              file?: T;
+              title?: T;
+              description?: T;
+              buttonLabel?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  terms?: T;
+  publishedDate?: T;
   seo?:
     | T
     | {

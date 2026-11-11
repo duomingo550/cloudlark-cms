@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { detailHref, mediaUrl } from '@/lib/content'
+import { detailHref, formatDuration, mediaUrl } from '@/lib/content'
 
 function termNames(doc: any) {
   return (doc.terms || [])
@@ -161,6 +161,31 @@ export function EntryCard({
           <p>{entry.artist}</p>
           <div className="meta">
             <span>{entry.album || '单曲'}</span>
+            <span className="status">播放 ▶</span>
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  if (collection === 'videos') {
+    return (
+      <Link className="course" href={href}>
+        <div
+          className="cover"
+          style={{
+            background: cover
+              ? `linear-gradient(rgba(15,35,28,.18),rgba(15,35,28,.55)), url("${cover}") center/cover`
+              : courseColor(entry.title),
+          }}
+        >
+          ▶
+        </div>
+        <div className="body">
+          <h3>{entry.title}</h3>
+          <p>{entry.description || '视频作品'}</p>
+          <div className="meta">
+            <span>{formatDuration(entry.duration) || tags[0] || '视频'}</span>
             <span className="status">播放 ▶</span>
           </div>
         </div>

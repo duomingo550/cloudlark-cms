@@ -412,11 +412,51 @@ figcaption {
 }
 
 .content-video iframe,
-.content-video > img {
+.content-video > img,
+.content-video > video {
   aspect-ratio: 16 / 9;
   border: 0;
   border-radius: 10px;
   width: 100%;
+}
+
+.content-video > video {
+  background: #000;
+  display: block;
+}
+
+.video-placeholder {
+  background: var(--surface);
+}
+
+.video-placeholder-inner {
+  align-items: center;
+  aspect-ratio: 16 / 9;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.video-placeholder-inner span {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.video-placeholder-inner b {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.video-placeholder-inner small {
+  color: var(--faint);
+  font-size: 12px;
+  max-width: 320px;
 }
 
 .text-link {
