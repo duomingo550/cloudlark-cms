@@ -150,17 +150,25 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * 发布后出现在 /<slug> 路径；保存草稿不会上线。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
+  /**
+   * 可留空
+   */
   excerpt?: string | null;
   body?:
     | (
@@ -186,6 +194,9 @@ export interface Page {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -195,6 +206,9 @@ export interface Page {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -209,8 +223,17 @@ export interface Page {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -229,7 +252,13 @@ export interface Page {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -251,7 +280,13 @@ export interface Page {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -259,6 +294,9 @@ export interface Page {
           }
       )[]
     | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -281,6 +319,9 @@ export interface Site {
    * 仅使用小写字母、数字和连字符
    */
   slug: string;
+  /**
+   * 只填主机名，不含协议和路径
+   */
   domains?:
     | {
         /**
@@ -329,6 +370,9 @@ export interface Media {
   alt: string;
   caption?: string | null;
   credit?: string | null;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   updatedAt: string;
   createdAt: string;
@@ -374,10 +418,13 @@ export interface Media {
  */
 export interface Track {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   artist: string;
@@ -412,6 +459,9 @@ export interface Track {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -421,6 +471,9 @@ export interface Track {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -435,8 +488,17 @@ export interface Track {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -455,7 +517,13 @@ export interface Track {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -477,7 +545,13 @@ export interface Track {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -497,6 +571,9 @@ export interface Track {
    * 大于 0 时进入本周推荐，数字越小越靠前
    */
   featuredRank?: number | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -521,6 +598,9 @@ export interface AudioAsset {
   durationSeconds?: number | null;
   license?: string | null;
   rightsOwner?: string | null;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   updatedAt: string;
   createdAt: string;
@@ -546,6 +626,9 @@ export interface DownloadAsset {
   version?: string | null;
   checksum?: string | null;
   accessPolicy?: ('public' | 'unlisted' | 'entitled') | null;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   updatedAt: string;
   createdAt: string;
@@ -565,6 +648,9 @@ export interface DownloadAsset {
  */
 export interface Term {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   name: string;
   slug: string;
@@ -575,18 +661,26 @@ export interface Term {
   createdAt: string;
 }
 /**
+ * 发布后出现在 /news 路径；保存草稿不会上线。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles".
  */
 export interface Article {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   excerpt: string;
+  /**
+   * 可留空
+   */
   cover?: (number | null) | Media;
   body?:
     | (
@@ -612,6 +706,9 @@ export interface Article {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -621,6 +718,9 @@ export interface Article {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -635,8 +735,17 @@ export interface Article {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -655,7 +764,13 @@ export interface Article {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -677,7 +792,13 @@ export interface Article {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -685,14 +806,26 @@ export interface Article {
           }
       )[]
     | null;
+  /**
+   * 可留空
+   */
   terms?: (number | Term)[] | null;
+  /**
+   * 可留空
+   */
   sourceName?: string | null;
+  /**
+   * 可留空
+   */
   sourceUrl?: string | null;
   publishedDate?: string | null;
   /**
    * 大于 0 时进入本周推荐，数字越小越靠前
    */
   featuredRank?: number | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -705,15 +838,20 @@ export interface Article {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * 发布后出现在 /tutorials 路径；保存草稿不会上线。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tutorials".
  */
 export interface Tutorial {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   excerpt: string;
@@ -742,6 +880,9 @@ export interface Tutorial {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -751,6 +892,9 @@ export interface Tutorial {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -765,8 +909,17 @@ export interface Tutorial {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -785,7 +938,13 @@ export interface Tutorial {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -807,7 +966,13 @@ export interface Tutorial {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -820,6 +985,9 @@ export interface Tutorial {
   relatedTools?: (number | Tool)[] | null;
   relatedProducts?: (number | Product)[] | null;
   publishedDate?: string | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -832,15 +1000,20 @@ export interface Tutorial {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * 发布后出现在 /tools 路径；保存草稿不会上线。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tools".
  */
 export interface Tool {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   name: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   summary: string;
@@ -868,6 +1041,9 @@ export interface Tool {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -877,6 +1053,9 @@ export interface Tool {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -891,8 +1070,17 @@ export interface Tool {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -911,7 +1099,13 @@ export interface Tool {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -933,7 +1127,13 @@ export interface Tool {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -942,9 +1142,18 @@ export interface Tool {
       )[]
     | null;
   url: string;
+  /**
+   * 可留空
+   */
   logo?: (number | null) | Media;
+  /**
+   * 可留空
+   */
   terms?: (number | Term)[] | null;
   pricing?: ('free' | 'freemium' | 'paid' | 'unknown') | null;
+  /**
+   * 可留空，仅用于展示支持的平台
+   */
   platforms?:
     | {
         name: string;
@@ -955,6 +1164,9 @@ export interface Tool {
    * 大于 0 时进入本周推荐，数字越小越靠前
    */
   featuredRank?: number | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -967,15 +1179,20 @@ export interface Tool {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * 发布后出现在 /products 路径；保存草稿不会上线。
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   name: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   kind: 'agent' | 'course' | 'service' | 'digital-product' | 'membership';
@@ -1004,6 +1221,9 @@ export interface Product {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1013,6 +1233,9 @@ export interface Product {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -1027,8 +1250,17 @@ export interface Product {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1047,7 +1279,13 @@ export interface Product {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1069,7 +1307,13 @@ export interface Product {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1077,19 +1321,34 @@ export interface Product {
           }
       )[]
     | null;
+  /**
+   * 可留空
+   */
   cover?: (number | null) | Media;
   /**
    * 例如 ¥99、待定价、按需报价
    */
   priceLabel?: string | null;
   statusLabel?: ('available' | 'coming-soon' | 'building' | 'consult' | 'retired') | null;
+  /**
+   * 可留空
+   */
   purchaseUrl?: string | null;
+  /**
+   * 可留空
+   */
   download?: (number | null) | DownloadAsset;
+  /**
+   * 可留空
+   */
   terms?: (number | Term)[] | null;
   /**
    * 大于 0 时进入本周推荐，数字越小越靠前
    */
   featuredRank?: number | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -1107,10 +1366,13 @@ export interface Product {
  */
 export interface LearningPath {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   description: string;
@@ -1124,6 +1386,9 @@ export interface LearningPath {
       }[]
     | null;
   terms?: (number | Term)[] | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -1141,10 +1406,13 @@ export interface LearningPath {
  */
 export interface Skill {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   name: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   group: string;
@@ -1162,16 +1430,22 @@ export interface Skill {
  */
 export interface ComicSery {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   synopsis: string;
   cover?: (number | null) | Media;
   status?: ('ongoing' | 'completed' | 'paused') | null;
   terms?: (number | Term)[] | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -1189,11 +1463,14 @@ export interface ComicSery {
  */
 export interface ComicChapter {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   series: number | ComicSery;
   title: string;
   /**
-   * 用于独立 URL，例如 /news/ai-trends/
+   * 自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符
    */
   slug: string;
   chapterNumber: number;
@@ -1224,6 +1501,9 @@ export interface ComicChapter {
           }
         | {
             image: number | Media;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1233,6 +1513,9 @@ export interface ComicChapter {
             items?:
               | {
                   image: number | Media;
+                  /**
+                   * 可留空
+                   */
                   caption?: string | null;
                   id?: string | null;
                 }[]
@@ -1247,8 +1530,17 @@ export interface ComicChapter {
              * 仅允许白名单平台的 https 地址
              */
             url: string;
+            /**
+             * 可留空
+             */
             poster?: (number | null) | Media;
+            /**
+             * 可留空
+             */
             title?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1267,7 +1559,13 @@ export interface ComicChapter {
              * 可填写 CSV 或制表符分隔数据，发布时用于文字替代
              */
             dataTable?: string | null;
+            /**
+             * 可留空
+             */
             source?: string | null;
+            /**
+             * 可留空
+             */
             caption?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1289,7 +1587,13 @@ export interface ComicChapter {
         | {
             file: number | DownloadAsset;
             title: string;
+            /**
+             * 可留空
+             */
             description?: string | null;
+            /**
+             * 可留空，默认「下载文件」
+             */
             buttonLabel?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -1298,6 +1602,9 @@ export interface ComicChapter {
       )[]
     | null;
   publishedDate?: string | null;
+  /**
+   * 选填。留空会用站点默认 SEO
+   */
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -1317,6 +1624,9 @@ export interface ComicChapter {
  */
 export interface Section {
   id: number;
+  /**
+   * 当前只有一个站点，保持默认即可
+   */
   site: number | Site;
   /**
    * 例如 tools、news、music

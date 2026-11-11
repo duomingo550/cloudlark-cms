@@ -11,7 +11,8 @@ export const Tutorials: CollectionConfig = {
   labels: { singular: '教程', plural: '教程' },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'site', 'durationMinutes', 'updatedAt', '_status'],
+    defaultColumns: ['title', 'durationMinutes', 'updatedAt'],
+    description: '发布后出现在 /tutorials 路径；保存草稿不会上线。',
     group: '内容',
   },
   access: standardContentAccess,

@@ -4,6 +4,10 @@ export const seoFields: Field = {
   name: 'seo',
   type: 'group',
   label: 'SEO',
+  admin: {
+    position: 'sidebar',
+    description: '选填。留空会用站点默认 SEO',
+  },
   fields: [
     {
       name: 'title',

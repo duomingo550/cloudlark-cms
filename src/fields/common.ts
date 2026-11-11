@@ -10,6 +10,7 @@ export const siteField: Field = {
   index: true,
   admin: {
     position: 'sidebar',
+    description: '当前只有一个站点，保持默认即可',
   },
   access: {
     update: adminOnlyField,
@@ -23,7 +24,7 @@ export const slugField: Field = {
   index: true,
   admin: {
     position: 'sidebar',
-    description: '用于独立 URL，例如 /news/ai-trends/',
+    description: '自动生成优先，留空即可；如需自定义，只能用小写字母、数字和连字符',
   },
   validate: (value: unknown) => {
     if (typeof value !== 'string' || !value.trim()) return '请填写 slug'

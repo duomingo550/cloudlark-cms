@@ -4,6 +4,7 @@ import { standardContentAccess } from '@/access/siteAccess'
 import { bodyBlocks } from '@/blocks/bodyBlocks'
 import { featuredField, siteField, slugField } from '@/fields/common'
 import { seoFields } from '@/fields/seo'
+import { autoFillSlugAndSite } from '@/hooks/autoFill'
 import { uniquePerSite } from '@/hooks/uniquePerSite'
 
 export const Products: CollectionConfig = {
@@ -11,11 +12,17 @@ export const Products: CollectionConfig = {
   labels: { singular: '产品/服务', plural: '产品与服务' },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'kind', 'site', 'statusLabel', 'updatedAt', '_status'],
+    defaultColumns: ['name', 'kind', 'statusLabel', 'updatedAt'],
+    description: '发布后出现在 /products 路径；保存草稿不会上线。',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/components/admin/PublishHint'],
+      },
+    },
     group: '内容',
   },
   access: standardContentAccess,
-  hooks: { beforeValidate: [uniquePerSite('products', 'slug')] },
+  hooks: { beforeValidate: [autoFillSlugAndSite, uniquePerSite('products', 'slug')] },
   versions: {
     drafts: {
       autosave: true,
@@ -61,6 +68,10 @@ export const Products: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: '封面',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'priceLabel',
@@ -87,12 +98,20 @@ export const Products: CollectionConfig = {
       name: 'purchaseUrl',
       type: 'text',
       label: '购买或咨询链接',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'download',
       type: 'relationship',
       relationTo: 'download-assets',
       label: '交付文件',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'terms',
@@ -100,6 +119,9 @@ export const Products: CollectionConfig = {
       relationTo: 'terms',
       hasMany: true,
       label: '分类与人群',
+      admin: {
+        description: '可留空',
+      },
     },
     featuredField,
     seoFields,

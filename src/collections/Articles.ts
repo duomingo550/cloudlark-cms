@@ -9,6 +9,7 @@ import {
   slugField,
 } from '@/fields/common'
 import { seoFields } from '@/fields/seo'
+import { autoFillSlugAndSite } from '@/hooks/autoFill'
 import { uniquePerSite } from '@/hooks/uniquePerSite'
 
 export const Articles: CollectionConfig = {
@@ -16,11 +17,17 @@ export const Articles: CollectionConfig = {
   labels: { singular: '文章/资讯', plural: '文章/资讯' },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'site', 'publishedDate', 'updatedAt', '_status'],
+    defaultColumns: ['title', 'publishedDate', 'updatedAt'],
+    description: '发布后出现在 /news 路径；保存草稿不会上线。',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/components/admin/PublishHint'],
+      },
+    },
     group: '内容',
   },
   access: standardContentAccess,
-  hooks: { beforeValidate: [uniquePerSite('articles', 'slug')] },
+  hooks: { beforeValidate: [autoFillSlugAndSite, uniquePerSite('articles', 'slug')] },
   versions: {
     drafts: {
       autosave: true,
@@ -47,6 +54,10 @@ export const Articles: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: '封面',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'body',
@@ -60,16 +71,26 @@ export const Articles: CollectionConfig = {
       relationTo: 'terms',
       hasMany: true,
       label: '分类与标签',
+      admin: {
+        description: '可留空',
+      },
     },
     {
       name: 'sourceName',
       type: 'text',
       label: '来源名称',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'sourceUrl',
       type: 'text',
       label: '原文链接',
+      admin: {
+        description: '可留空',
+      },
       validate: (value: unknown) =>
         !value ||
         (typeof value === 'string' && /^https?:\/\//i.test(value)) ||

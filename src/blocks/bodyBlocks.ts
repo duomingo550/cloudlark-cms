@@ -4,6 +4,9 @@ const captionField: Field = {
   name: 'caption',
   type: 'textarea',
   label: '说明',
+  admin: {
+    description: '可留空',
+  },
 }
 
 export const bodyBlocks: Block[] = [
@@ -14,6 +17,7 @@ export const bodyBlocks: Block[] = [
       {
         name: 'content',
         type: 'richText',
+        label: '正文内容',
         required: true,
       },
     ],
@@ -26,6 +30,7 @@ export const bodyBlocks: Block[] = [
         name: 'image',
         type: 'upload',
         relationTo: 'media',
+        label: '图片',
         required: true,
       },
       captionField,
@@ -45,6 +50,7 @@ export const bodyBlocks: Block[] = [
             name: 'image',
             type: 'upload',
             relationTo: 'media',
+            label: '图片',
             required: true,
           },
           captionField,
@@ -59,6 +65,7 @@ export const bodyBlocks: Block[] = [
       {
         name: 'provider',
         type: 'select',
+        label: '视频平台',
         required: true,
         defaultValue: 'bilibili',
         options: [
@@ -72,6 +79,7 @@ export const bodyBlocks: Block[] = [
       {
         name: 'url',
         type: 'text',
+        label: '视频地址',
         required: true,
         admin: {
           description: '仅允许白名单平台的 https 地址',
@@ -82,11 +90,17 @@ export const bodyBlocks: Block[] = [
         type: 'upload',
         relationTo: 'media',
         label: '视频封面',
+        admin: {
+          description: '可留空',
+        },
       },
       {
         name: 'title',
         type: 'text',
         label: '视频标题',
+        admin: {
+          description: '可留空',
+        },
       },
       captionField,
     ],
@@ -111,6 +125,7 @@ export const bodyBlocks: Block[] = [
       {
         name: 'title',
         type: 'text',
+        label: '图表标题',
         required: true,
       },
       {
@@ -131,6 +146,9 @@ export const bodyBlocks: Block[] = [
         name: 'source',
         type: 'text',
         label: '数据来源',
+        admin: {
+          description: '可留空',
+        },
       },
       captionField,
     ],
@@ -149,6 +167,7 @@ export const bodyBlocks: Block[] = [
             name: 'image',
             type: 'upload',
             relationTo: 'media',
+            label: '页面图片',
             required: true,
           },
           {
@@ -161,6 +180,7 @@ export const bodyBlocks: Block[] = [
       {
         name: 'readingMode',
         type: 'select',
+        label: '阅读方式',
         defaultValue: 'vertical',
         options: [
           { label: '竖屏连续阅读', value: 'vertical' },
@@ -177,21 +197,31 @@ export const bodyBlocks: Block[] = [
         name: 'file',
         type: 'relationship',
         relationTo: 'download-assets',
+        label: '下载文件',
         required: true,
       },
       {
         name: 'title',
         type: 'text',
+        label: '文件标题',
         required: true,
       },
       {
         name: 'description',
         type: 'textarea',
+        label: '文件说明',
+        admin: {
+          description: '可留空',
+        },
       },
       {
         name: 'buttonLabel',
         type: 'text',
+        label: '按钮文案',
         defaultValue: '下载文件',
+        admin: {
+          description: '可留空，默认「下载文件」',
+        },
       },
     ],
   },

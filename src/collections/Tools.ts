@@ -4,6 +4,7 @@ import { standardContentAccess } from '@/access/siteAccess'
 import { bodyBlocks } from '@/blocks/bodyBlocks'
 import { featuredField, siteField, slugField } from '@/fields/common'
 import { seoFields } from '@/fields/seo'
+import { autoFillSlugAndSite } from '@/hooks/autoFill'
 import { uniquePerSite } from '@/hooks/uniquePerSite'
 
 export const Tools: CollectionConfig = {
@@ -11,11 +12,17 @@ export const Tools: CollectionConfig = {
   labels: { singular: '工具', plural: 'AI 工具' },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'site', 'pricing', 'featuredRank', 'updatedAt', '_status'],
+    defaultColumns: ['name', 'pricing', 'featuredRank', 'updatedAt'],
+    description: '发布后出现在 /tools 路径；保存草稿不会上线。',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/components/admin/PublishHint'],
+      },
+    },
     group: '内容',
   },
   access: standardContentAccess,
-  hooks: { beforeValidate: [uniquePerSite('tools', 'slug')] },
+  hooks: { beforeValidate: [autoFillSlugAndSite, uniquePerSite('tools', 'slug')] },
   versions: {
     drafts: {
       autosave: true,
@@ -57,6 +64,10 @@ export const Tools: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: 'Logo',
+      admin: {
+        position: 'sidebar',
+        description: '可留空',
+      },
     },
     {
       name: 'terms',
@@ -64,6 +75,9 @@ export const Tools: CollectionConfig = {
       relationTo: 'terms',
       hasMany: true,
       label: '分类、人群与标签',
+      admin: {
+        description: '可留空',
+      },
     },
     {
       name: 'pricing',
@@ -81,10 +95,14 @@ export const Tools: CollectionConfig = {
       name: 'platforms',
       type: 'array',
       label: '平台',
+      admin: {
+        description: '可留空，仅用于展示支持的平台',
+      },
       fields: [
         {
           name: 'name',
           type: 'text',
+          label: '平台名称',
           required: true,
         },
       ],

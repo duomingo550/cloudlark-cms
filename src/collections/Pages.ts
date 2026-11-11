@@ -4,6 +4,7 @@ import { standardContentAccess } from '@/access/siteAccess'
 import { bodyBlocks } from '@/blocks/bodyBlocks'
 import { siteField, slugField } from '@/fields/common'
 import { seoFields } from '@/fields/seo'
+import { autoFillSlugAndSite } from '@/hooks/autoFill'
 import { uniquePerSite } from '@/hooks/uniquePerSite'
 
 export const Pages: CollectionConfig = {
@@ -11,11 +12,17 @@ export const Pages: CollectionConfig = {
   labels: { singular: '页面', plural: '页面' },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'site', 'updatedAt', '_status'],
+    defaultColumns: ['title', 'updatedAt'],
+    description: '发布后出现在 /<slug> 路径；保存草稿不会上线。',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/components/admin/PublishHint'],
+      },
+    },
     group: '内容',
   },
   access: standardContentAccess,
-  hooks: { beforeValidate: [uniquePerSite('pages', 'slug')] },
+  hooks: { beforeValidate: [autoFillSlugAndSite, uniquePerSite('pages', 'slug')] },
   versions: {
     drafts: {
       autosave: true,
@@ -34,6 +41,9 @@ export const Pages: CollectionConfig = {
       name: 'excerpt',
       type: 'textarea',
       label: '页面摘要',
+      admin: {
+        description: '可留空',
+      },
     },
     {
       name: 'body',
