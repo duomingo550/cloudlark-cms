@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+import { resolveBaseUrl } from '@/lib/siteUrl'
+
 export function pageMetadata({
   site,
   doc,
@@ -11,10 +13,9 @@ export function pageMetadata({
   fallbackTitle?: string
   path?: string
 }): Metadata {
-  const base = (site.publicUrl || process.env.NEXT_PUBLIC_CMS_URL || '').replace(
-    /\/+$/,
-    '',
-  )
+  // 与 sitemap/robots/llms.txt 共用同一个根 URL 解析：publicUrl 是本机地址时退回
+  // NEXT_PUBLIC_CMS_URL，避免 canonical / openGraph 指向 localhost。
+  const base = resolveBaseUrl(site.publicUrl)
   const seo = doc?.seo || {}
   const title = seo.title || doc?.title || doc?.name || fallbackTitle || site.name
   const description =

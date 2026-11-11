@@ -9,6 +9,24 @@ export async function getPayloadClient() {
   return getPayload({ config })
 }
 
+/**
+ * 取第一条站点记录（不受 Host 影响）。
+ *
+ * 给 sitemap / robots / llms.txt 这类「整站级」产物用：它们没有页面语境，
+ * 也不该因为请求头里的 Host 不同而生成不同的站点地图。
+ */
+export const getPrimarySite = cache(async () => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'sites',
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+  })
+  return result.docs[0] || null
+})
+
 export const getCurrentSite = cache(async () => {
   const payload = await getPayloadClient()
   const headerStore = await headers()

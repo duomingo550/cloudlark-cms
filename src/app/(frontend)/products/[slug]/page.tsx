@@ -3,9 +3,15 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { BlockRenderer } from '@/components/site/Blocks'
+import {
+  breadcrumbNode,
+  JsonLd,
+  productNode,
+} from '@/components/site/JsonLd'
 import { getEntry, mediaUrl } from '@/lib/content'
 import { getCurrentSite } from '@/lib/payload'
 import { pageMetadata } from '@/lib/seo'
+import { absoluteUrl, resolveBaseUrl } from '@/lib/siteUrl'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -30,8 +36,19 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound()
   const cover = mediaUrl(product.cover)
   const download = product.download
+  const base = resolveBaseUrl(site.publicUrl)
   return (
     <>
+      <JsonLd
+        data={[
+          productNode(product, site, base),
+          breadcrumbNode([
+            { name: '首页', url: absoluteUrl(base, '/') },
+            { name: '数字商店', url: absoluteUrl(base, '/store') },
+            { name: product.name, url: absoluteUrl(base, `/products/${slug}`) },
+          ]),
+        ]}
+      />
       <div className="detail-back">
         <Link className="btn" href="/store">
           ← 返回数字商店

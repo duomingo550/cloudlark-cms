@@ -1,5 +1,10 @@
 import Link from 'next/link'
 
+import {
+  JsonLd,
+  personNode,
+  websiteNode,
+} from '@/components/site/JsonLd'
 import { SectionRenderer } from '@/components/site/SectionRenderer'
 import {
   getSectionCounts,
@@ -7,6 +12,7 @@ import {
   getSections,
 } from '@/lib/content'
 import { getCurrentSite } from '@/lib/payload'
+import { resolveBaseUrl } from '@/lib/siteUrl'
 
 const featureColors = [
   'var(--c-green)',
@@ -40,8 +46,11 @@ export default async function HomePage() {
           .slice(0, 4)
       : []
 
+  const base = resolveBaseUrl(site.publicUrl)
+
   return (
     <>
+      <JsonLd data={[personNode(site, base), websiteNode(site, base)]} />
       <section className="hero">
         <span className="kicker">
           <Link href="/about">云雀明叔</Link> 手筛的实战工具箱
