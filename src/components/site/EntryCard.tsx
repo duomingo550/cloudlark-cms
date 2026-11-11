@@ -55,6 +55,7 @@ export function EntryCard({
   const href = detailHref(collection, entry)
   const cover = mediaUrl(entry.cover || entry.logo)
   const tags = termNames(entry)
+  const coverAlt = entry.name || entry.title || ''
 
   if (collection === 'articles') {
     const date = dateParts(entry.publishedDate)
@@ -82,7 +83,7 @@ export function EntryCard({
             style={{ background: courseColor(entry.name) }}
           >
             {cover ? (
-              <img alt="" loading="lazy" src={cover} />
+              <img alt={coverAlt} loading="lazy" src={cover} />
             ) : (
               initial(entry.name)
             )}
@@ -111,7 +112,7 @@ export function EntryCard({
           style={{ background: courseColor(entry.name) }}
         >
           {cover ? (
-            <img alt="" loading="lazy" src={cover} />
+            <img alt={coverAlt} loading="lazy" src={cover} />
           ) : (
             initial(entry.name)
           )}

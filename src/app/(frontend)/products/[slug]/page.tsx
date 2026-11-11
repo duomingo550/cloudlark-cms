@@ -52,7 +52,7 @@ export default async function ProductPage({ params }: Props) {
               <strong>{product.priceLabel || '了解详情'}</strong>
             </div>
             <div className="hero-cta">
-              {product.purchaseUrl && (
+              {product.purchaseUrl ? (
                 <a
                   className="btn primary big"
                   href={product.purchaseUrl}
@@ -61,6 +61,10 @@ export default async function ProductPage({ params }: Props) {
                 >
                   咨询或购买 ↗
                 </a>
+              ) : (
+                <Link className="btn primary big" href="/about">
+                  发起咨询 →
+                </Link>
               )}
               {download?.url && (
                 <a className="btn big" download href={download.url}>
@@ -68,6 +72,11 @@ export default async function ProductPage({ params }: Props) {
                 </a>
               )}
             </div>
+            {!product.purchaseUrl && (
+              <p className="detail-lead">
+                此服务暂未开放在线购买，可以先发起咨询了解。
+              </p>
+            )}
           </div>
           <div className="product-detail-visual">
             {cover ? (

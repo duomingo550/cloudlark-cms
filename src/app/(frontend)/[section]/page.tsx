@@ -65,5 +65,12 @@ export default async function SectionPage({ params }: Props) {
   }
 
   const entries = await getSectionEntries(section, 200)
-  return <SectionRenderer entries={entries} section={section} showMore={false} />
+  return (
+    <SectionRenderer
+      entries={entries}
+      headingLevel={1}
+      section={section}
+      showMore={false}
+    />
+  )
 }

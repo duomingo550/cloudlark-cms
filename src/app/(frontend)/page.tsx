@@ -124,10 +124,10 @@ export default async function HomePage() {
       <section className="sec">
         <div className="hero home-note">
           <span className="kicker">关于这个网站</span>
-          <h1>
+          <h2>
             一个人在学习，
             <em>也在把学到的做成东西。</em>
-          </h1>
+          </h2>
           <p>
             这里记录一个 58 岁独立创业者，用 AI
             重新学习、创作和开发的过程。不是榜单，是一路上的真实选择。

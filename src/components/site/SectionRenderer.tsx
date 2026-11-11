@@ -25,12 +25,15 @@ export function SectionRenderer({
   entries,
   preview = false,
   showMore = true,
+  headingLevel = 2,
 }: {
   section: any
   entries: any[]
   preview?: boolean
   showMore?: boolean
+  headingLevel?: 1 | 2
 }) {
+  const Heading = headingLevel === 1 ? 'h1' : 'h2'
   const visibleEntries = preview ? entries.slice(0, 8) : entries
   const wrapper = containerClass(
     section.templateKey || 'list',
@@ -40,7 +43,7 @@ export function SectionRenderer({
   return (
     <section className="sec" id={section.key}>
       <div className="sec-head">
-        <h2>{section.label}</h2>
+        <Heading>{section.label}</Heading>
         <span className="tag">
           {preview ? '精选内容 · 持续更新' : `${entries.length} 条内容`}
         </span>
