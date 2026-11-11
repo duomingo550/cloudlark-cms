@@ -114,7 +114,7 @@ const WEBHOOK_TIMEOUT_MS = 5000
  *    到达 fetch 的唯一通路；
  * 2. 通知失败绝不能影响线索落库——所有通知动作都包在 try/catch 里，只 console.warn。
  */
-const notifyNewLead: CollectionAfterChangeHook = async ({ doc, operation }) => {
+export const notifyNewLead: CollectionAfterChangeHook = async ({ doc, operation }) => {
   // 管理员改状态/备注（update）不该再通知一次。
   if (operation !== 'create') return doc
 
