@@ -694,3 +694,74 @@ figcaption {
     flex-direction: column;
   }
 }
+
+.contact-sec {
+  max-width: 720px;
+}
+
+.contact-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 16px;
+  padding: 26px;
+}
+
+.contact-field {
+  display: grid;
+  gap: 6px;
+}
+
+.contact-field label {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contact-field input,
+.contact-field textarea {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  outline: none;
+  padding: 11px 14px;
+  width: 100%;
+}
+
+.contact-field input:focus,
+.contact-field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.contact-field textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.contact-form .btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.contact-error {
+  color: var(--c-rose);
+  font-size: 14px;
+}
+
+.contact-success {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  color: var(--accent-dark);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 22px 26px;
+}

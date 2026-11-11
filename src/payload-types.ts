@@ -85,6 +85,7 @@ export interface Config {
     sites: Site;
     memberships: Membership;
     users: User;
+    leads: Lead;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -110,6 +111,7 @@ export interface Config {
     sites: SitesSelect<false> | SitesSelect<true>;
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    leads: LeadsSelect<false> | LeadsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -1694,6 +1696,30 @@ export interface User {
   collection: 'users';
 }
 /**
+ * 来自联系表单的咨询线索；仅管理员可见
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads".
+ */
+export interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  /**
+   * 最多 5000 字
+   */
+  message: string;
+  source?: string | null;
+  status?: ('new' | 'contacted' | 'archived') | null;
+  note?: string | null;
+  /**
+   * 由系统自动填入，无需手动选择
+   */
+  site?: (number | null) | Site;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1788,6 +1814,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'leads';
+        value: number | Lead;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2915,6 +2945,21 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads_select".
+ */
+export interface LeadsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  message?: T;
+  source?: T;
+  status?: T;
+  note?: T;
+  site?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

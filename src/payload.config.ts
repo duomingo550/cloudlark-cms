@@ -13,6 +13,7 @@ import { ComicChapters } from '@/collections/ComicChapters'
 import { ComicSeries } from '@/collections/ComicSeries'
 import { DownloadAssets } from '@/collections/DownloadAssets'
 import { LearningPaths } from '@/collections/LearningPaths'
+import { Leads } from '@/collections/Leads'
 import { Media } from '@/collections/Media'
 import { Memberships } from '@/collections/Memberships'
 import { Pages } from '@/collections/Pages'
@@ -88,6 +89,7 @@ export default buildConfig({
     Sites,
     Memberships,
     Users,
+    Leads,
   ],
   cors: [serverURL],
   csrf: [serverURL],

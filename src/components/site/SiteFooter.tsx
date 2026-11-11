@@ -18,6 +18,7 @@ export function SiteFooter({ site, sections }: { site: any; sections: any[] }) {
             {section.label}
           </Link>
         ))}
+        <Link href="/contact">联系我</Link>
       </nav>
       {socialLinks.length > 0 && (
         <nav aria-label="社交链接" className="footer-nav">
