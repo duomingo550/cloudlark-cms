@@ -33,6 +33,7 @@
     "check": "tsc --noEmit",
     "test:security": "node --experimental-strip-types --no-warnings scripts/security.test.ts",
     "smoke": "node scripts/smoke.mjs",
+    "verify:phase1": "node scripts/verify-phase1.mjs",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "seed": "payload run src/seed.ts"
