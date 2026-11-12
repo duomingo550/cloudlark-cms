@@ -139,10 +139,15 @@ const DRAFT = {
 
 /**
  * 管理员凭据：只用于断言 8 的清理与基线回读（登录本身不是被测对象）。
- * 默认值就是本地 seed 出来的管理员（见 .env 的 SEED_ADMIN_*）。
+ * 口令只从环境变量读取，不设默认值 —— 仓库是公开的，默认口令等于送出一个可用账号。
  */
-const ADMIN_EMAIL = process.env.CMS_EMAIL || 'admin@example.com'
-const ADMIN_PASSWORD = process.env.CMS_PASSWORD || 'CloudLark-Local-2026'
+const ADMIN_EMAIL = process.env.CMS_EMAIL
+const ADMIN_PASSWORD = process.env.CMS_PASSWORD
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('缺少 CMS_EMAIL / CMS_PASSWORD 环境变量（断言 8 的清理需要登录）')
+  process.exit(2)
+}
 
 /** Leads.ts:52 的 400 文案，逐字比对（前端联系表单直接展示这一句）。 */
 const LEADS_REQUIRED_MESSAGE = '请填写称呼、邮箱和内容'

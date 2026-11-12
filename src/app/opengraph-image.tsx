@@ -25,14 +25,9 @@ import { getPrimarySite } from '@/lib/payload'
  * 见同目录 README.md）。字体在模块加载时读一次，之后所有请求复用同一份 Buffer。
  * 已用「把 globalThis.fetch 打成必失败」的离线脚手架实测：中文正常，fetch 调用 0 次。
  *
- * 子集之外的生僻字仍可能触发 @vercel/og 的动态补字（联网时正常，离线时方框）；
- * 因此保留 PREFER_LATIN_TEXT 开关：设为 true 时改用「域名 + 固定英文副标题」，
- * 不依赖任何中文字形。默认 false（中文文案对营销更有用）。
+ * 子集之外的生僻字仍可能触发 @vercel/og 的动态补字（联网时正常，离线时方框）。
  */
 export const runtime = 'nodejs'
-
-/** 设为 true 时只上图拉丁文案（域名 + 英文副标题），不依赖任何中文字形。 */
-const PREFER_LATIN_TEXT = false
 
 /** 兜底站点名/副标题：sites 缺失（未 seed、DB 未建）时仍然要返回一张合法图片。 */
 const FALLBACK_NAME = 'CloudLark CMS'
@@ -62,13 +57,6 @@ void fontDataPromise.catch(() => {})
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
-/** 只放行拉丁字形覆盖得到的字符（可打印 ASCII + 常见拉丁扩展）。 */
-const LATIN_SAFE = /^[\x20-\x7E\u00A0-\u024F\u2000-\u206F\u20A0-\u20CF]+$/
-
-function latinOnly(value: string) {
-  return value.length > 0 && LATIN_SAFE.test(value)
-}
-
 /** publicUrl → 主机名（OG 图上用域名当站点标识，纯 ASCII，任何字体都能画）。 */
 function domainOf(publicUrl: string) {
   const raw = publicUrl.replace(/^https?:\/\//i, '').replace(/[/?#].*$/, '')
@@ -90,8 +78,7 @@ export default async function OpengraphImage() {
   const domain = domainOf(text(site?.publicUrl))
   const brand = text(site?.brand?.primaryColor) || FALLBACK_BRAND
 
-  const pick = (value: string, fallback: string) =>
-    !value ? fallback : PREFER_LATIN_TEXT && !latinOnly(value) ? fallback : value
+  const pick = (value: string, fallback: string) => value || fallback
 
   const title = pick(seoTitle || name, FALLBACK_TITLE)
   const subtitle = pick(description, FALLBACK_TAGLINE)

@@ -63,6 +63,10 @@ export const LearningPaths: CollectionConfig = {
           name: 'url',
           type: 'text',
           label: '相关链接',
+          validate: (value: unknown) =>
+            !value ||
+            (typeof value === 'string' && /^https?:\/\//i.test(value)) ||
+            '相关链接必须是 http(s) 地址',
         },
       ],
     },

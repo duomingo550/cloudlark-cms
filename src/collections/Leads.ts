@@ -124,10 +124,12 @@ export const notifyNewLead: CollectionAfterChangeHook = async ({ doc, operation 
   const source = asText(doc?.source) || 'contact'
   const at = new Date().toISOString()
   const excerpt = message.replace(/\s+/g, ' ').trim().slice(0, LOG_EXCERPT_LENGTH)
+  const [emailLocal, emailDomain] = email.split('@')
+  const maskedEmail = emailLocal ? `${emailLocal[0]}***@${emailDomain}` : ''
 
   try {
     console.log(
-      `[lead] new lead name=${name} email=${email} at=${at} source=${source} excerpt=${excerpt}${
+      `[lead] new lead name=${name} email=${maskedEmail} at=${at} source=${source} excerpt=${excerpt}${
         message.trim().length > LOG_EXCERPT_LENGTH ? '…' : ''
       }`,
     )

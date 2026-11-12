@@ -102,6 +102,10 @@ export const Products: CollectionConfig = {
         position: 'sidebar',
         description: '可留空',
       },
+      validate: (value: unknown) =>
+        !value ||
+        (typeof value === 'string' && /^https?:\/\//i.test(value)) ||
+        '购买或咨询链接必须是 http(s) 地址',
     },
     {
       name: 'download',

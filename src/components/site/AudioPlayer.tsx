@@ -7,7 +7,6 @@ type AudioPlayerProps = {
   title: string
   artist?: string | null
   cover?: string | null
-  compact?: boolean
 }
 
 function formatTime(seconds: number) {
@@ -23,7 +22,6 @@ export function AudioPlayer({
   title,
   artist,
   cover,
-  compact = false,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playing, setPlaying] = useState(false)
@@ -68,7 +66,7 @@ export function AudioPlayer({
   }
 
   return (
-    <div className={`audio-player ${compact ? 'is-compact' : ''}`}>
+    <div className="audio-player">
       <audio preload="metadata" ref={audioRef} src={src || undefined} />
       <div
         className="audio-cover"

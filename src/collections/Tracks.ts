@@ -94,6 +94,10 @@ export const Tracks: CollectionConfig = {
           name: 'url',
           type: 'text',
           required: true,
+          validate: (value: unknown) =>
+            typeof value === 'string' && /^https?:\/\//i.test(value)
+              ? true
+              : '外部平台链接必须是 http(s) 地址',
         },
       ],
     },

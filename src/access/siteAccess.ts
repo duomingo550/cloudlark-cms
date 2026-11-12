@@ -8,9 +8,6 @@ type UserWithRole = {
 export const isPlatformAdmin = (user: unknown): user is UserWithRole =>
   Boolean(user && (user as UserWithRole).platformRole === 'admin')
 
-export const currentUser = (req: { user?: unknown }) =>
-  (req.user || null) as UserWithRole | null
-
 export const adminOnly: Access = ({ req }) => isPlatformAdmin(req.user)
 
 export const adminOnlyField: FieldAccess = ({ req }) => isPlatformAdmin(req.user)
@@ -31,10 +28,6 @@ export const canAccessAdmin = async ({
   })
   return membership.totalDocs > 0
 }
-
-export const authenticated: Access = ({ req }) => Boolean(req.user)
-
-export const publicRead: Access = () => true
 
 export async function editableSiteIds(req: {
   payload: any

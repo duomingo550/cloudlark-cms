@@ -6,8 +6,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const BASE = process.env.CMS_BASE || 'http://localhost:3000';
-const EMAIL = process.env.CMS_EMAIL || 'admin@example.com';
-const PASSWORD = process.env.CMS_PASSWORD || 'CloudLark-Local-2026';
+const EMAIL = process.env.CMS_EMAIL;
+const PASSWORD = process.env.CMS_PASSWORD;
+
+if (!EMAIL || !PASSWORD) {
+  console.error('缺少 CMS_EMAIL / CMS_PASSWORD 环境变量，脚本退出（口令只从环境变量读取）');
+  process.exit(2);
+}
 
 // ---------- 极简 markdown → Payload lexical ----------
 function textNode(text, format = 0) {

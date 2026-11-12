@@ -35,7 +35,7 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: path.resolve(dirname, '../../media/images'),
-    mimeTypes: ['image/*'],
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
     pasteURL: false,
     imageSizes: [
       { name: 'thumbnail', width: 480, height: undefined, position: 'centre' },
