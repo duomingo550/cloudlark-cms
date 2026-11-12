@@ -44,7 +44,10 @@ export const autoFillSlugAndSite: CollectionBeforeValidateHook = async ({
         : ''
 
   if (!data.slug && !originalDoc?.slug && source.trim()) {
-    data.slug = slugify(source) || fallbackSlug()
+    const slug = slugify(source)
+    // 中文标题只留下个别英文词时（例如只剩 "ai"），单独一个短词会撞车且没有检索价值，
+    // 补时间戳尾巴，保持可读又能唯一。
+    data.slug = slug.length >= 4 ? slug : `${slug ? `${slug}-` : ''}${fallbackSlug()}`
   }
 
   if (!data.site && !originalDoc?.site) {
