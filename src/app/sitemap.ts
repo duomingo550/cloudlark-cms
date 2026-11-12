@@ -25,9 +25,10 @@ export const dynamic = 'force-dynamic'
  * src/app/(frontend)/skills/[slug]，写进 sitemap 就是死链，所以这里刻意不收录 skills 详情
  * （/skills 列表页由 [section] 动态路由提供，仍然保留）。
  *
- * `tracks`/`comic-series` 的详情路由(/music/[slug]、/comics/[slug])存在，但它们对应的
- * 栏目在种子数据里是 visible=false（src/seed.ts:324、:335），getSections() 拿不到，
- * 因此不会出现在 sitemap 里 —— 未启用的栏目不该被搜索引擎当成站点正文。
+ * `tracks`/`comic-series` 的详情路由(/music/[slug]、/comics/[slug])存在；种子数据里
+ * 这两个栏目（music / comics）已经是 visible=true，所以会随 sections 循环正常收录。
+ * 只有 visible=false 的栏目才会被 getSections() 过滤掉 —— 未启用的栏目不该被
+ * 搜索引擎当成站点正文。
  */
 const DETAIL_ROUTE: Record<string, string> = {
   articles: 'news',
