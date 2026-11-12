@@ -3,6 +3,7 @@ import {
   type CollectionAfterChangeHook,
   type CollectionBeforeValidateHook,
   type CollectionConfig,
+  type Where,
 } from 'payload'
 
 import { adminOnly, adminOnlyField } from '@/access/siteAccess'
@@ -38,8 +39,30 @@ const resolveLeadSite: CollectionBeforeValidateHook = async ({ data, req }) => {
   return data
 }
 
+/** 优先 x-forwarded-for 的第一个值，其次 x-real-ip；都取不到就是 null。 */
+const readClientIp = (headers: Headers | undefined): string | null => {
+  const forwardedFor = headers?.get('x-forwarded-for')
+  if (forwardedFor) {
+    const first = asText(forwardedFor.split(',')[0])
+    if (first) return first
+  }
+  return asText(headers?.get('x-real-ip')) || null
+}
+
 /**
- * 2. 校验必填与长度：先于字段级 required 校验给出统一的 400 文案。
+ * 2. 记录来源 IP：服务端从请求头取，前端不能指定（字段 access.create 已关闭）。
+ */
+const resolveLeadIp: CollectionBeforeValidateHook = ({ data, operation, req }) => {
+  // 更新（改状态/备注）不能把已记录的 IP 覆盖成空。
+  if (!data || operation !== 'create') return data
+
+  data.ip = readClientIp(req.headers)
+
+  return data
+}
+
+/**
+ * 3. 校验必填与长度：先于字段级 required 校验给出统一的 400 文案。
  */
 const validateLead: CollectionBeforeValidateHook = ({ data }) => {
   if (!data) return data
@@ -67,8 +90,9 @@ const validateLead: CollectionBeforeValidateHook = ({ data }) => {
 }
 
 /**
- * 3. 简单限流：同一邮箱 5 分钟内最多 3 条。
+ * 4. 简单限流：同一邮箱或同一 IP，5 分钟内最多 3 条。
  * 已被限流的重复提交不会落库，所以计数只看已存在的线索。
+ * IP 取不到（null）时只用邮箱，避免所有匿名用户共用一个 null 桶。
  */
 const limitLeadRate: CollectionBeforeValidateHook = async ({ data, operation, req }) => {
   // 限流只针对新提交；管理员更新状态/备注时不应被历史提交次数挡住。
@@ -77,13 +101,17 @@ const limitLeadRate: CollectionBeforeValidateHook = async ({ data, operation, re
   const email = asText(data.email)
   if (!email) return data
 
+  const ip = asText(data.ip)
+  const matched: Where[] = [{ email: { equals: email } }]
+  if (ip) matched.push({ ip: { equals: ip } })
+
   const since = new Date(Date.now() - FIVE_MINUTES_MS).toISOString()
   const { totalDocs } = await req.payload.count({
     collection: 'leads',
     overrideAccess: true,
     where: {
       and: [
-        { email: { equals: email } },
+        { or: matched },
         { createdAt: { greater_than: since } },
       ],
     },
@@ -103,7 +131,7 @@ const LOG_EXCERPT_LENGTH = 20
 const WEBHOOK_TIMEOUT_MS = 5000
 
 /**
- * 4. 新线索通知（只新增 hook，不改已有字段与 access）。
+ * 5. 新线索通知（只新增 hook，不改已有字段与 access）。
  *
  * 行为 A（默认）：写一行结构化日志，自托管用户 docker logs / journalctl 就能看到。
  * 行为 B（可选）：只有 .env 设了 LEAD_WEBHOOK_URL 才 POST 一条 JSON。生产环境不一定
@@ -176,8 +204,8 @@ export const Leads: CollectionConfig = {
     delete: adminOnly,
   },
   hooks: {
-    // 顺序固定：先补站点，再校验内容，最后限流（限流需要校验后的 email）。
-    beforeValidate: [resolveLeadSite, validateLead, limitLeadRate],
+    // 顺序固定：先补站点与 IP，再校验内容，最后限流（限流需要 IP 与校验后的 email）。
+    beforeValidate: [resolveLeadSite, resolveLeadIp, validateLead, limitLeadRate],
     // 落库之后才通知：创建失败或校验不通过时不该发出任何通知。
     afterChange: [notifyNewLead],
   },
@@ -241,6 +269,21 @@ export const Leads: CollectionConfig = {
         create: () => false,
         read: adminOnlyField,
         update: adminOnlyField,
+      },
+    },
+    {
+      name: 'ip',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: '提交来源 IP，服务端写入',
+      },
+      // 只由 beforeValidate 钩子写入：前端传的 ip 一律丢弃，后台也不能改。
+      access: {
+        create: () => false,
+        update: () => false,
+        read: adminOnlyField,
       },
     },
     {

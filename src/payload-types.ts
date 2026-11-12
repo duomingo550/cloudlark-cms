@@ -1930,6 +1930,10 @@ export interface Lead {
   status?: ('new' | 'contacted' | 'archived') | null;
   note?: string | null;
   /**
+   * 提交来源 IP，服务端写入
+   */
+  ip?: string | null;
+  /**
    * 由系统自动填入，无需手动选择
    */
   site?: (number | null) | Site;
@@ -3314,6 +3318,7 @@ export interface LeadsSelect<T extends boolean = true> {
   source?: T;
   status?: T;
   note?: T;
+  ip?: T;
   site?: T;
   updatedAt?: T;
   createdAt?: T;
