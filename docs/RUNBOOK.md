@@ -72,7 +72,7 @@ pnpm seed
 | `download-assets` | 200 MB | zip / pdf |
 | `video-assets` | 200 MB | mp4 / webm / quicktime |
 
-**已知缺口（待修）**：`src/proxy.ts` 的 `uploadRoutes` 只列了 media / audio-assets / download-assets，**没有 `video-assets`**。也就是说视频上传**没有第 ① 层 413 保护**，只靠第 ② 层 hook。修法是把 `{ prefix: '/api/video-assets', limit: 200 * 1024 * 1024 }` 加进那个数组。
+**第 ① 层覆盖范围**：`uploadRoutes` 与 `config.matcher` 均已包含 media / audio-assets / download-assets / video-assets 四个上传集合。新增上传集合时**两处都要加** —— 只加 `uploadRoutes` 不会生效，`matcher` 决定中间件是否运行。
 
 **注意顺序**：`uploadSizeLimit` 与 `storageQuota` 都是 `beforeChange`，**在 access 判断之后**执行。它们不是权限闸门，不能当第二道授权用。
 

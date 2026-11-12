@@ -7,7 +7,7 @@ import { enforceStorageQuota } from '@/hooks/storageQuota'
 import {
   canCreateForSite,
   canManageSiteContent,
-  uploadedFileRead,
+  downloadFileRead,
 } from '@/access/siteAccess'
 import { siteField } from '@/fields/common'
 
@@ -24,7 +24,7 @@ export const DownloadAssets: CollectionConfig = {
   access: {
     create: canCreateForSite,
     delete: canManageSiteContent,
-    read: uploadedFileRead,
+    read: downloadFileRead,
     update: canManageSiteContent,
   },
   hooks: {

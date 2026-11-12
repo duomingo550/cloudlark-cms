@@ -112,6 +112,16 @@ export const uploadedFileRead: Access = async (args) => {
   return canReadSite(args)
 }
 
+/**
+ * 下载交付物与其它素材不同：它是「买到的文件」。
+ * 静态文件也要求登录，否则知道文件名就能拿到，权限等于没有。
+ */
+export const downloadFileRead: Access = async (args) => {
+  if (!args.req.user) return false
+  if (args.isReadingStaticFile) return true
+  return canReadSite(args)
+}
+
 export const memberRead: Access = async ({ req }) => {
   if (!req.user) return false
   if (isPlatformAdmin(req.user)) return true
