@@ -1,5 +1,13 @@
 # 第一次发布到 GitHub
 
+> **状态说明（2026-11-12 补）**：这是**建仓当时的记录**。仓库现在已经在
+> `github.com/duomingo550/cloudlark-cms`，工作分支是 `codex/cloudlark-workbench`。
+> 因此下面 **第 1–2 节（新建仓库、`git init -b main`）已经过时**，只保留作历史参照；
+> 日常只需要在本地提交后 `git push origin codex/cloudlark-workbench`。
+>
+> 另外：本文讲的是「把代码推到 GitHub」，**不是**「把内容发布到网站」。
+> 内容发布请看 README 的「Build」与「Before deploying to production」两节。
+
 这个目录已经是一个独立的开源项目，不要把私有云雀网站目录一起上传。
 
 ## 1. 创建 GitHub 空仓库

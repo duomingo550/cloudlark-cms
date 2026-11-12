@@ -98,7 +98,7 @@ See [ROADMAP.md](ROADMAP.md) for the planned direction.
 ### Requirements
 
 - Node.js 22.23.4 or newer
-- pnpm 10 or newer
+- pnpm 12.x (see `packageManager` in `package.json`; the repo is developed against pnpm 12.5.1)
 - Optional: ffmpeg for future audio transcoding
 
 ### Install and run
@@ -120,30 +120,65 @@ Open:
 - Public site: <http://localhost:3000>
 - Admin: <http://localhost:3000/admin>
 
-The local demo credentials come from `.env`:
+The admin account is **not** seeded with a default password. Set both values in
+`.env` before running `pnpm seed`:
 
 ```text
-SEED_ADMIN_EMAIL=admin@example.com
-SEED_ADMIN_PASSWORD=change-this-password
+SEED_ADMIN_EMAIL=you@example.com
+SEED_ADMIN_PASSWORD=<at-least-12-characters>
 ```
 
-The seeded defaults are only for local development. Change both values before
-using a persistent database.
+`pnpm seed` exits with a non-zero code and a Chinese error message if either
+value is missing — this is deliberate, so that a fresh clone can never come up
+with a publicly known admin password.
 
-To initialize an existing local demo user with a new password, set
+These values only matter at seed time. They are read from the environment, never
+written into the repository.
+
+To reset the password of an existing seeded user, set
 `SEED_RESET_ADMIN_PASSWORD=true` before running `pnpm seed`. This updates the
-existing user instead of only returning it.
+existing user instead of only reading it back.
 
 ### Build
 
 ```bash
 pnpm check
 pnpm test:security
-pnpm audit --prod --audit-level high
 pnpm build
-pnpm start
-pnpm smoke
 ```
+
+`pnpm start` runs a foreground server and blocks the terminal. `pnpm smoke`
+needs a server that is already listening, so it cannot be chained directly
+after `pnpm start`. Use two terminals:
+
+```bash
+# terminal 1
+pnpm start
+
+# terminal 2, once the server has printed "Ready"
+pnpm smoke
+pnpm verify:phase1
+```
+
+`pnpm verify:phase1` is the content-level suite: it checks a single `<h1>` per
+page, anonymous API rejection, the 404 on an unknown host, and that draft
+articles never leak to the public site.
+
+### Before deploying to production
+
+Two things will bite you if you skip them:
+
+1. **The database must exist before the server starts.** With
+   `NODE_ENV=production` the SQLite adapter does not create tables, so a
+   production build pointed at an empty file answers `500` with
+   `SQLITE_ERROR: no such table: sites`. Either run `pnpm seed` against the
+   target database first, or ship a database that has already been migrated.
+2. **`PAYLOAD_SECRET` must be at least 32 characters** and must not be the
+   example value. The server refuses to boot otherwise.
+
+Also set `ALLOWED_HOSTS` to the real domain and keep
+`ALLOW_UNMATCHED_HOST_FALLBACK=false`. With the fallback enabled, any unknown
+`Host` header resolves to the default site instead of returning `404`.
 
 ## Tech stack
 
