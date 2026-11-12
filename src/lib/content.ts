@@ -234,6 +234,8 @@ export async function searchSite(
     { collection: 'tracks', fields: ['title', 'artist'] },
     { collection: 'comic-series', fields: ['title', 'synopsis'] },
     { collection: 'videos', fields: ['title', 'description'] },
+    { collection: 'skills', fields: ['name', 'description'] },
+    { collection: 'learning-paths', fields: ['title', 'description'] },
   ] as const
 
   const results = await Promise.all(

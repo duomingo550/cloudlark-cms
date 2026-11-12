@@ -863,7 +863,6 @@ for (const demo of demoDownloads) {
     {
       title: demo.title,
       version: '1.0.0',
-      accessPolicy: 'public',
       checksum: fs.existsSync(filePath) ? fileSha256(filePath) : undefined,
     },
     filePath,

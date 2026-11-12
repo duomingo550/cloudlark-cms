@@ -21,6 +21,8 @@ const labels: Record<string, string> = {
   tracks: '音乐作品',
   'comic-series': '漫画',
   videos: '视频作品',
+  skills: 'Skill',
+  'learning-paths': '学习路线',
 }
 
 const wrappers: Record<string, string> = {
@@ -31,6 +33,7 @@ const wrappers: Record<string, string> = {
   tracks: 'course-grid',
   'comic-series': 'course-grid',
   videos: 'course-grid',
+  'learning-paths': 'course-grid',
 }
 
 export default async function SearchPage({ searchParams }: Props) {

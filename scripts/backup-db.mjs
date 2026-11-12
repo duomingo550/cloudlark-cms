@@ -36,17 +36,16 @@
  *
  * 实现约束
  * --------
- * 零第三方依赖：优先用 Node 内置的 node:sqlite（Node 22+ 的 DatabaseSync），
- * 不可用时自动回退到 `python -c`（本机 python 自带 sqlite3 标准库）。
- * 两个后端做同样三件事：VACUUM INTO 备份、只读 inspect、供恢复后校验。
- * 脚本不读 .env：库路径用 DATABASE_FILE / DATABASE_URL 覆盖，默认仓库根目录的
- * cloudlark-local.db；备份目录用 BACKUP_DIR 覆盖，默认仓库根目录的 backups/。
+ * 零第三方依赖：只用 Node 内置的 node:sqlite（engines 要求 Node ≥22.23.4，
+ * 该模块默认可用）。脚本不读 .env：库路径用 DATABASE_FILE / DATABASE_URL 覆盖，
+ * 默认仓库根目录的 cloudlark-local.db；备份目录用 BACKUP_DIR 覆盖，默认
+ * 仓库根目录的 backups/。
  */
 
-import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import net from 'node:net'
 import path from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -64,137 +63,53 @@ function resolveDbPath() {
 const DB_PATH = resolveDbPath()
 const BACKUP_DIR = path.resolve(process.env.BACKUP_DIR || path.join(REPO_ROOT, 'backups'))
 
-// ── SQLite 后端探测 ─────────────────────────────────────────────────────────
-// node:sqlite 在 Node 22.5 需要 --experimental-sqlite，22.13 起默认可用；导入失败
-// 或没有 DatabaseSync 就回退 python，保证脚本在两种机器上都能跑。
-let nodeSqlite = null
-try {
-  const mod = await import('node:sqlite')
-  if (mod && typeof mod.DatabaseSync === 'function') nodeSqlite = mod
-} catch {
-  nodeSqlite = null
-}
-const BACKEND = nodeSqlite ? 'node:sqlite' : 'python -c sqlite3'
-
 /** Windows 反斜杠交给 SQLite 时容易出岔子，统一成正斜杠再拼 SQL 字符串字面量。 */
-function sqlPath(filePath) {
-  return filePath.replace(/\\/g, '/')
-}
-
-/** SQL 字符串字面量转义：单引号翻倍。 */
 function sqlLiteral(value) {
-  return `'${sqlPath(value).replace(/'/g, "''")}'`
+  return `'${value.replace(/\\/g, '/').replace(/'/g, "''")}'`
 }
-
-// ── python 回退：两个自包含小程序，参数走 argv，不经过 shell，无引号地狱 ──
-const PY_INSPECT = `
-import json, sqlite3, sys
-path = sys.argv[1]
-result = {"integrity": [], "tables": None, "counts": {}, "error": None}
-con = None
-try:
-    con = sqlite3.connect("file:" + path.replace("\\\\", "/") + "?mode=ro", uri=True)
-    result["integrity"] = [row[0] for row in con.execute("PRAGMA integrity_check").fetchall()]
-    result["tables"] = con.execute("select count(*) from sqlite_master where type='table'").fetchone()[0]
-    for name in ("users", "tools", "articles"):
-        exists = con.execute(
-            "select count(*) from sqlite_master where type='table' and name=?", (name,)
-        ).fetchone()[0]
-        result["counts"][name] = (
-            con.execute('select count(*) from "%s"' % name).fetchone()[0] if exists else None
-        )
-except Exception as exc:
-    result["error"] = str(exc)
-finally:
-    if con is not None:
-        con.close()
-print(json.dumps(result))
-`
-
-const PY_VACUUM = `
-import sqlite3, sys
-src, out = sys.argv[1], sys.argv[2]
-con = sqlite3.connect(src)
-try:
-    con.execute("VACUUM INTO '%s'" % out.replace("'", "''"))
-finally:
-    con.close()
-print("ok")
-`
 
 /**
  * 只读打开 dbPath 做三项检查。任何异常都收敛成 { ok:false, error }，
  * 由调用方决定退出码 —— 校验失败绝不能被当成「脚本崩了」。
  */
 function inspect(dbPath) {
-  if (nodeSqlite) {
-    let db = null
-    try {
-      db = new nodeSqlite.DatabaseSync(dbPath, { readOnly: true })
-      const integrity = db
-        .prepare('PRAGMA integrity_check')
-        .all()
-        .map((row) => row.integrity_check ?? Object.values(row)[0])
-      const tables = db
-        .prepare("select count(*) as c from sqlite_master where type='table'")
-        .get().c
-      const counts = {}
-      for (const table of KEY_TABLES) {
-        const exists = db
-          .prepare("select count(*) as c from sqlite_master where type='table' and name = ?")
-          .get(table).c
-        counts[table] = exists
-          ? db.prepare(`select count(*) as c from "${table}"`).get().c
-          : null
-      }
-      return { ok: true, integrity, tables, counts, error: null }
-    } catch (error) {
-      return { ok: false, integrity: [], tables: null, counts: {}, error: errorText(error) }
-    } finally {
-      try {
-        db?.close()
-      } catch {
-        // 损坏的库 close 也可能抛；这里不能再把错误盖掉真正的失败原因。
-      }
-    }
-  }
-
+  let db = null
   try {
-    const stdout = execFileSync('python', ['-c', PY_INSPECT, sqlPath(dbPath)], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
-    const parsed = JSON.parse(stdout.trim())
-    if (parsed.error) {
-      return { ok: false, integrity: [], tables: null, counts: {}, error: parsed.error }
+    db = new DatabaseSync(dbPath, { readOnly: true })
+    const integrity = db
+      .prepare('PRAGMA integrity_check')
+      .all()
+      .map((row) => row.integrity_check ?? Object.values(row)[0])
+    const tables = db
+      .prepare("select count(*) as c from sqlite_master where type='table'")
+      .get().c
+    const counts = {}
+    for (const table of KEY_TABLES) {
+      const exists = db
+        .prepare("select count(*) as c from sqlite_master where type='table' and name = ?")
+        .get(table).c
+      counts[table] = exists
+        ? db.prepare(`select count(*) as c from "${table}"`).get().c
+        : null
     }
-    return {
-      ok: true,
-      integrity: parsed.integrity,
-      tables: parsed.tables,
-      counts: parsed.counts,
-      error: null,
-    }
+    return { ok: true, integrity, tables, counts, error: null }
   } catch (error) {
     return { ok: false, integrity: [], tables: null, counts: {}, error: errorText(error) }
+  } finally {
+    try {
+      db?.close()
+    } catch {}
   }
 }
 
 /** VACUUM INTO 生成自包含快照；目标文件已存在时交给调用方报错（SQLite 会拒绝）。 */
 function vacuumInto(sourcePath, targetPath) {
-  if (nodeSqlite) {
-    const db = new nodeSqlite.DatabaseSync(sourcePath)
-    try {
-      db.exec(`VACUUM INTO ${sqlLiteral(targetPath)}`)
-    } finally {
-      db.close()
-    }
-    return
+  const db = new DatabaseSync(sourcePath)
+  try {
+    db.exec(`VACUUM INTO ${sqlLiteral(targetPath)}`)
+  } finally {
+    db.close()
   }
-  execFileSync('python', ['-c', PY_VACUUM, sqlPath(sourcePath), sqlPath(targetPath)], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  })
 }
 
 function errorText(error) {
@@ -275,8 +190,7 @@ function usage() {
   BACKUP_DIR                    覆盖备份目录（默认仓库根 backups/）
   SERVICE_PORT                  覆盖占用检测端口（默认 3000）
 
-退出码: 0 成功 / 1 校验失败 / 2 用法错误 / 3 目标被占用
-SQLite 后端: ${BACKEND}`)
+退出码: 0 成功 / 1 校验失败 / 2 用法错误 / 3 目标被占用`)
 }
 
 function commandBackup() {
@@ -294,7 +208,6 @@ function commandBackup() {
   }
 
   console.log(`[backup] 源库:   ${DB_PATH}`)
-  console.log(`[backup] 后端:   ${BACKEND}`)
   try {
     vacuumInto(DB_PATH, target)
   } catch (error) {

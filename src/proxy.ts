@@ -5,6 +5,7 @@ const uploadRoutes = [
   { prefix: '/api/media', limit: 10 * 1024 * 1024 },
   { prefix: '/api/audio-assets', limit: 50 * 1024 * 1024 },
   { prefix: '/api/download-assets', limit: 200 * 1024 * 1024 },
+  { prefix: '/api/video-assets', limit: 200 * 1024 * 1024 },
 ]
 
 export function proxy(request: NextRequest) {
@@ -29,5 +30,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/media/:path*', '/api/audio-assets/:path*', '/api/download-assets/:path*'],
+  matcher: [
+    '/api/media/:path*',
+    '/api/audio-assets/:path*',
+    '/api/download-assets/:path*',
+    '/api/video-assets/:path*',
+  ],
 }

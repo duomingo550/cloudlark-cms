@@ -2,25 +2,15 @@
 
 > **状态说明（2026-11-12 补）**：这是**建仓当时的记录**。仓库现在已经在
 > `github.com/duomingo550/cloudlark-cms`，工作分支是 `codex/cloudlark-workbench`。
-> 因此下面 **第 1–2 节（新建仓库、`git init -b main`）已经过时**，只保留作历史参照；
-> 日常只需要在本地提交后 `git push origin codex/cloudlark-workbench`。
+> 因此「新建 GitHub 仓库、本地初始化」这两步已经删除，日常只需要在本地提交后
+> `git push origin codex/cloudlark-workbench`。
 >
 > 另外：本文讲的是「把代码推到 GitHub」，**不是**「把内容发布到网站」。
 > 内容发布请看 README 的「Build」与「Before deploying to production」两节。
 
 这个目录已经是一个独立的开源项目，不要把私有云雀网站目录一起上传。
 
-## 1. 创建 GitHub 空仓库
-
-在 GitHub 新建公开仓库，名称建议：
-
-```text
-cloudlark-cms
-```
-
-不要勾选自动生成 README、.gitignore 或 License，因为项目中已经有了。
-
-## 2. 检查公开信息
+## 1. 检查公开信息
 
 仓库已经按 GitHub 账号 `duomingo550` 配置：
 
@@ -32,37 +22,7 @@ Owner: duomingo550
 如果需要改用其他账号或真实姓名，请在推送前修改 `README.md`、`package.json` 和
 `.github/ISSUE_TEMPLATE/config.yml`。
 
-## 3. 初始化 Git
-
-在 PowerShell 中执行：
-
-```powershell
-cd path\to\cloudlark-cms
-
-git init -b main
-git config user.name "你的 GitHub 用户名"
-git config user.email "你的 GitHub 邮箱"
-git add .
-git status
-git commit -m "feat: initial Cloud Lark CMS alpha"
-
-git remote add origin https://github.com/duomingo550/cloudlark-cms.git
-git push -u origin main
-```
-
-推送前确认 `git status` 中没有：
-
-```text
-.env
-cloudlark.db
-media/
-node_modules/
-.next/
-```
-
-这些文件已经在 `.gitignore` 中排除。
-
-## 4. GitHub 仓库设置
+## 2. GitHub 仓库设置
 
 建议在仓库设置中完成：
 
@@ -80,7 +40,7 @@ small-business, multi-tenant, content-management
 - 开启 Private vulnerability reporting。
 - 上传社交分享图，可以使用 `docs/screenshots/home-desktop.png`。
 
-## 5. 发布第一个 Release
+## 3. 发布第一个 Release
 
 建议标签：
 
@@ -100,7 +60,7 @@ Release 说明直接引用 `CHANGELOG.md`，并明确：
 - 暂不建议用于生产客户网站
 - 最需要真实使用场景和具体反馈
 
-## 6. 发布后的第一周
+## 4. 发布后的第一周
 
 不要只发一条“求 Star”。更有效的做法是：
 

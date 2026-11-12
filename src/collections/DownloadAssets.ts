@@ -19,7 +19,7 @@ export const DownloadAssets: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: '媒体',
-    description: '支持 ZIP、PDF，单个文件最大 200 MB。公开访问策略将在下载接口阶段进一步收紧。',
+    description: '支持 ZIP、PDF，单个文件最大 200 MB。',
   },
   access: {
     create: canCreateForSite,
@@ -55,17 +55,6 @@ export const DownloadAssets: CollectionConfig = {
       name: 'checksum',
       type: 'text',
       label: 'SHA-256',
-    },
-    {
-      name: 'accessPolicy',
-      type: 'select',
-      label: '访问策略',
-      defaultValue: 'public',
-      options: [
-        { label: '公开下载', value: 'public' },
-        { label: '仅链接可见', value: 'unlisted' },
-        { label: '授权后下载', value: 'entitled' },
-      ],
     },
     siteField,
   ],

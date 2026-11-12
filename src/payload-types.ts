@@ -621,7 +621,7 @@ export interface AudioAsset {
   focalY?: number | null;
 }
 /**
- * 支持 ZIP、PDF，单个文件最大 200 MB。公开访问策略将在下载接口阶段进一步收紧。
+ * 支持 ZIP、PDF，单个文件最大 200 MB。
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "download-assets".
@@ -631,7 +631,6 @@ export interface DownloadAsset {
   title: string;
   version?: string | null;
   checksum?: string | null;
-  accessPolicy?: ('public' | 'unlisted' | 'entitled') | null;
   /**
    * 当前只有一个站点，保持默认即可
    */
@@ -3172,7 +3171,6 @@ export interface DownloadAssetsSelect<T extends boolean = true> {
   title?: T;
   version?: T;
   checksum?: T;
-  accessPolicy?: T;
   site?: T;
   updatedAt?: T;
   createdAt?: T;
