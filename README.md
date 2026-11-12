@@ -180,6 +180,12 @@ Also set `ALLOWED_HOSTS` to the real domain and keep
 `ALLOW_UNMATCHED_HOST_FALLBACK=false`. With the fallback enabled, any unknown
 `Host` header resolves to the default site instead of returning `404`.
 
+### Further reading
+
+- [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md) — 8 步验收单：从空库到前台可见，含「什么算没通过」
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — 排错手册：建库顺序、host 匹配的三种失败、上传上限三处生效点、dev 卡死、自定义组件不渲染
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 结构与数据模型
+
 ## Tech stack
 
 - Next.js 16
