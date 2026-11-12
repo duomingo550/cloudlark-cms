@@ -56,8 +56,10 @@ export const Tracks: CollectionConfig = {
       name: 'audio',
       type: 'relationship',
       relationTo: 'audio-assets',
-      required: true,
       label: '音频文件',
+      admin: {
+        description: '可留空；留空时必须填「外部播放地址」',
+      },
     },
     {
       name: 'lyrics',

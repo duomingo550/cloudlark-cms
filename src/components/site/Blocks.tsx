@@ -235,14 +235,47 @@ export function BlockRenderer({ blocks }: { blocks?: any[] | null }) {
             return <VideoBlock block={block} key={index} />
           case 'audio': {
             const track = block.track
+            const cover = mediaUrl(track?.cover)
+            const src = mediaUrl(track?.audio)
+            if (src) {
+              return (
+                <AudioPlayer
+                  artist={track?.artist}
+                  cover={cover}
+                  key={index}
+                  src={src}
+                  title={track?.title || '音乐作品'}
+                />
+              )
+            }
+            const streamUrl = (track?.streamingLinks || [])
+              .map((link: any) => safeExternalUrl(link?.url))
+              .find(Boolean)
+            if (!streamUrl) {
+              return <p key={index}>暂无音频</p>
+            }
             return (
-              <AudioPlayer
-                artist={track?.artist}
-                cover={mediaUrl(track?.cover)}
-                key={index}
-                src={mediaUrl(track?.audio)}
-                title={track?.title || '音乐作品'}
-              />
+              <div className="audio-player" key={index}>
+                <div
+                  className="audio-cover"
+                  style={
+                    cover
+                      ? { backgroundImage: `url("${cover.replace(/"/g, '\\"')}")` }
+                      : undefined
+                  }
+                >
+                  {!cover && <span>♪</span>}
+                </div>
+                <div className="audio-body">
+                  <div className="audio-meta">
+                    <strong>{track?.title || '音乐作品'}</strong>
+                    <span>{track?.artist || '云雀音乐'}</span>
+                  </div>
+                  <div className="audio-controls">
+                    <audio controls preload="metadata" src={streamUrl} />
+                  </div>
+                </div>
+              </div>
             )
           }
           case 'chart':

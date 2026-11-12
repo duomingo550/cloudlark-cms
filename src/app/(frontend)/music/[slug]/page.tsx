@@ -30,7 +30,12 @@ export default async function TrackPage({ params }: Props) {
   const track = await getEntry('tracks', slug, site.id)
   if (!track) notFound()
   const cover = mediaUrl(track.cover)
-  const audio = mediaUrl(track.audio)
+  // 没有上传文件时，退回到「外部播放地址」里第一条能直接播放的直链。
+  // 平台主页链接（网易云/QQ音乐等）不能当 audio src，只认音频文件扩展名。
+  const directAudioLink = (track.streamingLinks || []).find((link: any) =>
+    /\.(mp3|m4a|wav|ogg)(\?|$)/i.test(String(link?.url || '')),
+  )?.url
+  const audio = mediaUrl(track.audio) || directAudioLink || null
   return (
     <>
       <div className="detail-back">

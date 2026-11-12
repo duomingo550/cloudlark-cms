@@ -19,7 +19,7 @@ export const AudioAssets: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: '媒体',
-    description: '支持 MP3、M4A、AAC、OGG。第一版建议单文件不超过 50MB。',
+    description: '支持 MP3、M4A、WAV、AAC、OGG。第一版建议单文件不超过 50MB。',
   },
   access: {
     create: canCreateForSite,
@@ -35,7 +35,15 @@ export const AudioAssets: CollectionConfig = {
   },
   upload: {
     staticDir: path.resolve(dirname, '../../media/audio'),
-    mimeTypes: ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/x-m4a'],
+    mimeTypes: [
+      'audio/mpeg',
+      'audio/mp4',
+      'audio/aac',
+      'audio/ogg',
+      'audio/x-m4a',
+      'audio/wav',
+      'audio/x-wav',
+    ],
     pasteURL: false,
   },
   fields: [

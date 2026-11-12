@@ -437,7 +437,10 @@ export interface Track {
   album?: string | null;
   releaseDate?: string | null;
   cover?: (number | null) | Media;
-  audio: number | AudioAsset;
+  /**
+   * 可留空；留空时必须填「外部播放地址」
+   */
+  audio?: (number | null) | AudioAsset;
   lyrics?: string | null;
   credits?: string | null;
   license?: string | null;
@@ -592,7 +595,7 @@ export interface Track {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * 支持 MP3、M4A、AAC、OGG。第一版建议单文件不超过 50MB。
+ * 支持 MP3、M4A、WAV、AAC、OGG。第一版建议单文件不超过 50MB。
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "audio-assets".
