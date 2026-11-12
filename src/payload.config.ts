@@ -53,6 +53,8 @@ const databaseAdapter =
         client: {
           url: process.env.DATABASE_URL || 'file:./cloudlark.db',
         },
+        // 生产环境关闭自动改表，只认迁移（AGENTS.md 八.2）。
+        push: process.env.NODE_ENV !== 'production',
       })
 
 export default buildConfig({
