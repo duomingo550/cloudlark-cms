@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * scripts/verify-phase1.mjs — Phase 1 内容级验收（纯 GET / 零依赖 / 不写库 / 不登录）
+ * scripts/verify-phase1.mjs — Phase 1 验收（内容正确性 + 鉴权边界 / 零依赖 / 可重复跑）
  *
  * 为什么存在
  * ----------
@@ -9,7 +9,8 @@
  * smoke 仍然全绿。种子在 src/seed.ts:421-428（草稿判定在 :427 的
  * `_status: index < 2 ? 'published' : 'draft'`）特意造了 1 条草稿（tutorial-3），
  * 却没有任何测试证明它没有从列表/详情漏出去。
- * 本脚本补的就是「内容对不对」这一层：7 条断言，任一条 FAIL 即退出码 1。
+ * 本脚本补的就是「内容对不对」和「谁能读/谁能写」这两层：12 条断言，任一条
+ * FAIL 即退出码 1。
  *
  * 用法
  * ----
@@ -18,7 +19,15 @@
  *   node scripts/verify-phase1.mjs --base=http://127.0.0.1:3100
  *   pnpm verify:phase1
  *
- * 约束：只发 GET；不写数据库、不登录、不提交表单。参考图/产物一律不落盘。
+ *   管理员账号通过环境变量覆盖（第 8 条清理测试线索时要用）：
+ *     CMS_EMAIL=admin@example.com CMS_PASSWORD=... node scripts/verify-phase1.mjs
+ *
+ * 约束：第 1–7 条只发 GET、不写库、不登录。第 8–12 条开始覆盖写入与鉴权边界：
+ *   - 第 8 条会匿名提交 1 条线索，并在断言结束前（含异常路径）用管理员 JWT 删掉；
+ *   - 第 9 条的请求会被 400 拦在落库前，不产生数据；
+ *   - 第 10 条的上传被 403 拦在 access 层，不会写入 media 目录；
+ *   - 第 11/12 条仍是纯 GET。
+ * 除第 8 条那条「自建自删」的线索外，不修改任何既有数据；产物一律不落盘。
  *
  * 逐条断言的存在理由
  * ------------------
@@ -64,9 +73,47 @@
  *    的宽松契约写：404 是正确行为，200 时额外要求不含标题与正文，两种情况
  *    都能抓到泄露，也不会因为未来把 404 改成「200 + 友好的未发布提示页」
  *    而无谓变红。
+ * 8. 匿名 POST /api/leads → 201；匿名 GET /api/leads → 403。
+ *    Leads.ts 的 access 是「create: () => true，read/update/delete: adminOnly」：
+ *    联系表单必须匿名可提交，但线索里是访客的姓名/邮箱/正文，读与删必须锁死。
+ *    只验 POST 成功会漏掉「读任意放开」这种把全部访客联系方式公网曝光的改坏；
+ *    只验 GET 403 又会漏掉「表单根本提交不上去」的线上故障。两条一起验，
+ *    才能卡住这个 collection 唯一的正确形状。
+ *    ⚠ 这条会真的写库，所以必须自建自删：断言结束（含中途抛异常）时用管理员
+ *    JWT DELETE 掉本次创建的 id，并回读 totalDocs 证明归零。为此每次运行都用
+ *    时间戳生成唯一邮箱 —— Leads.ts:73 的 limitLeadRate（上限见 :11 的
+ *    MAX_SUBMISSIONS_PER_WINDOW = 3）是「同一邮箱 5 分钟内最多 3 条」，
+ *    固定邮箱连跑第 4 次就会 400「提交太频繁」，把断言变成假红。
+ * 9. POST /api/leads 缺 email → 400，且 message 逐字为「请填写称呼、邮箱和内容」。
+ *    状态码和文案都要验：只验 400 时，一个「缺字段被当成 500」或「文案被改成
+ *    英文/乱码」的回归都能溜过去；而前端联系表单正是靠这段文案提示用户的。
+ *    该文案来自 Leads.ts:52 的 throw new APIError('请填写称呼、邮箱和内容', 400)。
+ * 10. 匿名 POST /api/media（极小 multipart）→ 401 或 403（非 2xx）。
+ *    Media.ts 的 create 是 canCreateForSite（匿名直接 false）。上传是匿名用户
+ *    最容易触碰的写入口，也是最贵的一个（占磁盘、进 CDN、可能被当图床）。
+ *    这里选 multipart 而不是「POST /api/video-assets 空体」，理由：
+ *      a. multipart 走的是真实的 multipart 解析链路，能顺带证明「解析之前就
+ *         被 access 挡住」，而不是靠空体/bad request 侥幸失败；
+ *      b. Node 18+ 内置 FormData/Blob，内存里造 8 字节 PNG 即可，零依赖、零落盘；
+ *      c. media 的 staticDir 就是 site 的图片目录，比 video-assets 更贴近现实风险。
+ *    可接受的期望是 401 或 403 —— 两者都表示「未通过鉴权」；唯一不可接受的是
+ *    2xx（匿名上传成功）或 500（access 层写成抛异常）。
+ * 11. GET /search?q=重复 → 200 且 HTML 不含草稿标题。
+ *    第 7 条只覆盖列表页与详情页，搜索是第三条读取路径：searchSite()
+ *    （src/lib/content.ts:222-262）自己拼 where，容易在重构时漏掉
+ *    `_status: { equals: 'published' }`，把草稿标题从「全站搜索」里漏出去。
+ *    关键词取草稿标题「把重复工作交给自动化」里的子串「重复」：Payload 的
+ *    like 是子串匹配，这个词必然命中草稿，因此「没出现」只可能是状态过滤生效，
+ *    而不是关键词没匹配上（后者会让断言假绿）。
+ * 12. 未登录 GET /api/articles → 403。
+ *    与第 5 条同构：Articles.ts 用的是 standardContentAccess，read 是
+ *    canReadSite（匿名 false）。内容集合一旦被改成 publicRead，全站文章（含
+ *    未发布的付费/内部稿件）就会绕过前端直接走 API 拉走；这条把「内容 API
+ *    必须登录」钉在契约里，和 /api/sites 一起构成多租户边界的两端。
  *
- * 依赖：Node >= 18（用全局 fetch / AbortSignal.timeout）；实测 Node v24.22.2。
- * 退出码：7/7 PASS → 0；任一 FAIL → 1。
+ * 依赖：Node >= 18（用全局 fetch / FormData / Blob / AbortSignal.timeout）；
+ *      实测 Node v24.22.2。
+ * 退出码：12/12 PASS → 0；任一 FAIL → 1；--base 非法 → 2。
  */
 
 import http from 'node:http'
@@ -74,6 +121,7 @@ import https from 'node:https'
 
 const DEFAULT_BASE = 'http://127.0.0.1:3000'
 const REQUEST_TIMEOUT_MS = 60_000
+const TOTAL_ASSERTIONS = 12
 
 /**
  * 种子契约（见 src/seed.ts:190、src/seed.ts:416-423 与 data/demo-content.json）。
@@ -84,7 +132,20 @@ const DRAFT = {
   slug: 'tutorial-3',
   title: '把重复工作交给自动化',
   body: '识别流程、拆解步骤，并用智能体完成日常重复任务。',
+  // 断言 11 用的搜索词：必须是草稿标题的子串，否则「搜不到」是关键词没命中，
+  // 而不是状态过滤生效，断言会假绿。这里取标题里的「重复」。
+  searchTerm: '重复',
 }
+
+/**
+ * 管理员凭据：只用于断言 8 的清理与基线回读（登录本身不是被测对象）。
+ * 默认值就是本地 seed 出来的管理员（见 .env 的 SEED_ADMIN_*）。
+ */
+const ADMIN_EMAIL = process.env.CMS_EMAIL || 'admin@example.com'
+const ADMIN_PASSWORD = process.env.CMS_PASSWORD || 'CloudLark-Local-2026'
+
+/** Leads.ts:52 的 400 文案，逐字比对（前端联系表单直接展示这一句）。 */
+const LEADS_REQUIRED_MESSAGE = '请填写称呼、邮箱和内容'
 
 function parseBase() {
   const argv = process.argv.slice(2)
@@ -100,7 +161,7 @@ function parseBase() {
     process.exit(2)
   }
   try {
-    // 提前校验，避免 7 条断言全部以「URL 非法」失败而看不出真正原因。
+    // 提前校验，避免 12 条断言全部以「URL 非法」失败而看不出真正原因。
     new URL(value)
   } catch {
     console.error(`--base 不是合法 URL: ${value}`)
@@ -112,11 +173,14 @@ function parseBase() {
 const base = parseBase()
 
 /** 带超时的 GET；redirect 用 manual，状态码原样返回，避免 3xx 被吞成 200。 */
-async function get(pathname) {
+async function get(pathname, extraHeaders = {}) {
   const response = await fetch(base + pathname, {
     method: 'GET',
     redirect: 'manual',
-    headers: { accept: 'text/html,application/json;q=0.9,*/*;q=0.8' },
+    headers: {
+      accept: 'text/html,application/json;q=0.9,*/*;q=0.8',
+      ...extraHeaders,
+    },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
   return {
@@ -124,6 +188,18 @@ async function get(pathname) {
     body: await response.text(),
     location: response.headers.get('location'),
   }
+}
+
+/** 发 JSON；status + 原始文本都返回，让断言能同时验状态码和文案。 */
+async function sendJson(method, pathname, payload, extraHeaders = {}) {
+  const response = await fetch(base + pathname, {
+    method,
+    redirect: 'manual',
+    headers: { 'content-type': 'application/json', ...extraHeaders },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  })
+  return { status: response.status, body: await response.text() }
 }
 
 /**
@@ -174,6 +250,120 @@ function errorText(error) {
   return error?.message || String(error)
 }
 
+/** 从 Payload 的 create 响应里取 id；解析失败返回 null（清理时会据此报告）。 */
+function createdId(body) {
+  try {
+    return JSON.parse(body)?.doc?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+/** 从列表响应里取 totalDocs；解析失败返回 null。 */
+function totalDocs(body) {
+  try {
+    return JSON.parse(body)?.totalDocs ?? null
+  } catch {
+    return null
+  }
+}
+
+/** 取 Bearer/JWT 头。Payload 两种前缀都接受，这里用官方文档里的 JWT。 */
+function authHeader(token) {
+  return { Authorization: `JWT ${token}` }
+}
+
+/**
+ * 管理员登录（只给断言 8 的清理用）。结果缓存，避免多次登录。
+ * ⚠ 必须带 Origin：仓库在 src/payload.config.ts:99 配了 csrf: [serverURL]，
+ *   登录 POST 不带 Origin 时会被 CSRF 策略挡成 403。
+ */
+let adminSessionPromise = null
+function adminSession() {
+  if (!adminSessionPromise) {
+    adminSessionPromise = (async () => {
+      try {
+        const response = await sendJson(
+          'POST',
+          '/api/users/login',
+          { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+          { origin: base },
+        )
+        let token = null
+        try {
+          token = JSON.parse(response.body)?.token ?? null
+        } catch {
+          token = null
+        }
+        if (response.status === 200 && token) {
+          return { ok: true, token, detail: `登录 200（${ADMIN_EMAIL}）` }
+        }
+        return {
+          ok: false,
+          token: null,
+          detail: `登录失败：POST /api/users/login → ${response.status}`,
+        }
+      } catch (error) {
+        return {
+          ok: false,
+          token: null,
+          detail: `登录异常：${errorText(error)}`,
+        }
+      }
+    })()
+  }
+  return adminSessionPromise
+}
+
+/** 读基线：清理前库里已有多少条线索（正常是 0，非 0 时也不该由本脚本清零）。 */
+async function leadBaseline(token) {
+  try {
+    const response = await get('/api/leads', authHeader(token))
+    if (response.status !== 200) return { ok: false, value: null, detail: `GET /api/leads → ${response.status}` }
+    return { ok: true, value: totalDocs(response.body), detail: '' }
+  } catch (error) {
+    return { ok: false, value: null, detail: errorText(error) }
+  }
+}
+
+/**
+ * 删除本次创建的线索并回读总数。
+ * 无论断言主体是否抛异常都会被调用（见断言 8 的 finally），
+ * 失败不 throw，把原因写进 report 让断言转红 —— 留脏数据必须是可见的失败。
+ */
+async function cleanupLeads(token, ids) {
+  const failures = []
+  const removed = []
+  for (const id of ids) {
+    try {
+      const response = await fetch(`${base}/api/leads/${id}`, {
+        method: 'DELETE',
+        redirect: 'manual',
+        headers: authHeader(token),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+      if (response.status >= 200 && response.status < 300) removed.push(id)
+      else failures.push(`DELETE /api/leads/${id} → ${response.status}`)
+    } catch (error) {
+      failures.push(`DELETE /api/leads/${id} 异常：${errorText(error)}`)
+    }
+  }
+
+  let after = null
+  try {
+    const response = await get('/api/leads', authHeader(token))
+    if (response.status === 200) after = totalDocs(response.body)
+    else failures.push(`清理后回读 GET /api/leads → ${response.status}`)
+  } catch (error) {
+    failures.push(`清理后回读异常：${errorText(error)}`)
+  }
+
+  const report = failures.length
+    ? `清理失败：${failures.join('；')}`
+    : `已删除 ${removed.length ? `id=${removed.join(',')}` : '（无）'}，回读 totalDocs=${after}`
+  return { ok: failures.length === 0, removed, totalDocsAfter: after, report }
+}
+
 // ── 预取：断言 1 与 2 共用一次 GET /，避免同一个页面请求两次（两次请求还可能
 //    落在不同的 RSC 渲染结果上，导致输出自相矛盾）。
 let home = { ok: false, error: null, status: 0, body: '' }
@@ -207,7 +397,7 @@ async function check(id, title, run) {
   results.push(result)
 
   const verdict = result.ok ? 'PASS' : 'FAIL'
-  console.log(`[${id}/7] ${title}`)
+  console.log(`[${id}/${TOTAL_ASSERTIONS}] ${title}`)
   console.log(`        ${verdict}  ${result.actual}`)
   if (!result.ok && result.expected) {
     console.log(`        期望：${result.expected}`)
@@ -318,6 +508,163 @@ await check(7, '草稿 tutorial-3 不出现在列表、详情不吐正文', asyn
   }
 })
 
+// ── 8. 匿名提交线索 → 201；匿名读取线索 → 403；测试数据自建自删 ────────────
+await check(
+  8,
+  '匿名 POST /api/leads → 201；匿名 GET /api/leads → 403；测试线索已清理',
+  async () => {
+    // 唯一邮箱：Leads.ts 的 limitLeadRate 是「同一邮箱 5 分钟最多 3 条」，
+    // 固定邮箱连跑第 4 次会 400「提交太频繁」，那是限流生效、不是本断言失败。
+    const email = `verify-phase1+${Date.now()}@example.com`
+    const parts = []
+    const createdIds = []
+    let postStatus = 0
+    let getStatus = 0
+    let baseline = null
+    let cleanup = { ok: false, report: '未执行清理（没有管理员凭据）', totalDocsAfter: null }
+
+    const session = await adminSession()
+    if (session.ok) {
+      const before = await leadBaseline(session.token)
+      baseline = before.value
+      parts.push(`基线 totalDocs=${baseline === null ? '未知' : baseline}`)
+    } else {
+      parts.push(`管理员登录失败（${session.detail}），无法预读/清理线索`)
+    }
+
+    try {
+      const post = await sendJson('POST', '/api/leads', {
+        name: '验收脚本 verify-phase1',
+        email,
+        message: '这是一条由 verify-phase1 自动创建、并在断言结束前删除的测试线索。',
+      })
+      postStatus = post.status
+      const id = createdId(post.body)
+      if (id !== null) createdIds.push(id)
+      parts.push(`匿名 POST /api/leads → ${postStatus}（email=${email}，id=${id === null ? '未解析到' : id}）`)
+
+      if (id === null && postStatus >= 200 && postStatus < 300) {
+        // 2xx 但拿不到 id：数据已落库却无法删，必须显式报出来。
+        parts.push('⚠ POST 成功但响应里没有 doc.id，无法自动清理')
+      }
+
+      const anonRead = await get('/api/leads')
+      getStatus = anonRead.status
+      parts.push(`匿名 GET /api/leads → ${getStatus}`)
+    } finally {
+      // 即使上面的请求抛异常也要尽力清理：留脏数据比测试失败更严重。
+      if (session.ok) {
+        cleanup = await cleanupLeads(session.token, createdIds)
+        parts.push(`清理：${cleanup.report}`)
+      } else {
+        cleanup = {
+          ok: createdIds.length === 0,
+          report:
+            createdIds.length === 0
+              ? '未创建数据，无需清理'
+              : `无法清理 id=${createdIds.join(',')}（${session.detail}）`,
+          totalDocsAfter: null,
+        }
+        parts.push(`清理：${cleanup.report}`)
+      }
+    }
+
+    const backToBaseline =
+      baseline === null ||
+      (cleanup.totalDocsAfter !== null && cleanup.totalDocsAfter === baseline)
+    const ok =
+      // Payload 的 create 成功契约就是 201；任何 2xx 之外的形状都算失败。
+      postStatus === 201 &&
+      getStatus === 403 &&
+      cleanup.ok &&
+      backToBaseline
+
+    return {
+      ok,
+      actual: parts.join('；'),
+      expected:
+        '匿名 POST → 201；匿名 GET → 403；测试线索已删除且回读 totalDocs 回到基线（当前 0）',
+    }
+  },
+)
+
+// ── 9. 缺 email 的线索必须 400，且文案逐字正确 ──────────────────────────────
+await check(9, 'POST /api/leads 缺 email → 400 且文案逐字匹配', async () => {
+  const response = await sendJson('POST', '/api/leads', {
+    name: '验收脚本 verify-phase1',
+    message: '这条缺少邮箱字段，应当在落库前被 400 拦下。',
+  })
+  // 同时看原始文本与解析后的 message：Payload 的 i18n 可能改写外层，
+  // 但 errors[].message 是 hooks 里 throw 的原文，必须逐字出现。
+  const rawHasText = response.body.includes(LEADS_REQUIRED_MESSAGE)
+  let parsedMessage = ''
+  try {
+    parsedMessage = JSON.parse(response.body)?.errors?.[0]?.message || ''
+  } catch {
+    parsedMessage = ''
+  }
+  const exact = parsedMessage === LEADS_REQUIRED_MESSAGE
+  const hasText = rawHasText || parsedMessage.includes(LEADS_REQUIRED_MESSAGE)
+
+  return {
+    ok: response.status === 400 && hasText && exact,
+    actual: `POST /api/leads（无 email）→ ${response.status}；文案含目标句 = ${hasText}；逐字相等 = ${exact}；响应 message = "${parsedMessage.slice(0, 80)}"`,
+    expected: `400 且 message 逐字为「${LEADS_REQUIRED_MESSAGE}」`,
+  }
+})
+
+// ── 10. 匿名上传必须被挡 ────────────────────────────────────────────────────
+await check(10, '匿名 POST /api/media（multipart）→ 401 或 403', async () => {
+  // 8 字节的假 PNG 头：只为构造一个「格式像图片」的 multipart，
+  // 内存里造、不落盘（access 层会在解析/落盘前就拒绝）。
+  const pngHead = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+  const form = new FormData()
+  form.append('alt', 'verify-phase1 匿名上传探针')
+  form.append('file', new Blob([pngHead], { type: 'image/png' }), 'verify-phase1.png')
+
+  const response = await fetch(base + '/api/media', {
+    method: 'POST',
+    redirect: 'manual',
+    body: form,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  })
+  const body = await response.text()
+  const status = response.status
+
+  return {
+    ok: status === 401 || status === 403,
+    actual: `匿名 POST /api/media（multipart，8 字节 PNG）→ ${status}；响应片段 ${JSON.stringify(body.slice(0, 120))}`,
+    expected: '401 或 403（匿名不得上传；2xx 说明图片目录已对公网开放写入）',
+  }
+})
+
+// ── 11. 搜索不得漏出草稿 ────────────────────────────────────────────────────
+await check(11, `GET /search?q=${DRAFT.searchTerm} → 200 且不含草稿标题`, async () => {
+  const { status, body } = await get(
+    `/search?q=${encodeURIComponent(DRAFT.searchTerm)}`,
+  )
+  const leakedTitle = body.includes(DRAFT.title)
+  // 关键词本身必须出现在页面上（搜索框回填/结果标题），否则「没泄露」可能
+  // 只是关键词没进 HTML，属于假绿。
+  const echoed = body.includes(DRAFT.searchTerm)
+
+  return {
+    ok: status === 200 && !leakedTitle && echoed,
+    actual: `GET /search?q=${DRAFT.searchTerm} → ${status}；HTML 含草稿标题 = ${leakedTitle}；HTML 含关键词 = ${echoed}；字节数 ${Buffer.byteLength(body)}`,
+    expected: `200 且 HTML 不含 "${DRAFT.title}"（关键词回填保留）`,
+  }
+})
+
+// ── 12. 未登录读内容 API 必须 403 ───────────────────────────────────────────
+await check(12, 'GET /api/articles（匿名）→ 403', async () => {
+  const { status } = await get('/api/articles')
+  return {
+    ok: status === 403,
+    actual: `GET /api/articles（无 Authorization）→ ${status}`,
+    expected: '403（内容 API 不得匿名可读，与 /api/sites 同构）',
+  }
+})
+
 // ── 汇总 ────────────────────────────────────────────────────────────────────
 const passed = results.filter((result) => result.ok).length
 const failed = results.filter((result) => !result.ok)
@@ -326,7 +673,7 @@ console.log('─'.repeat(72))
 if (failed.length > 0) {
   console.log(`失败项：${failed.map((result) => `#${result.id}`).join(', ')}`)
 }
-console.log(`${passed}/7 passed`)
+console.log(`${passed}/${TOTAL_ASSERTIONS} passed`)
 console.log(`base: ${base}`)
 
 process.exit(failed.length === 0 ? 0 : 1)
