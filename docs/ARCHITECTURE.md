@@ -119,6 +119,32 @@ track
 
 内容读取对匿名用户只返回已发布内容。写操作要求站点成员关系。
 
+## 运行时 SEO / GEO 路由
+
+这些路由都在请求时读库生成，不写静态文件，内容一改立刻生效：
+
+```text
+/sitemap.xml          已发布内容 + 栏目列表页 + 独立页面，带 lastmod/priority
+/robots.txt           搜索引擎、中文搜索引擎、AI 爬虫分段；指向 sitemap
+/llms.txt             给 AI 读的站点说明：定位、栏目、可引用事实、检索入口
+/rss.xml              最新文章
+/opengraph-image      动态分享图（中文字体子集打包在仓库内，离线可用）
+```
+
+页面级元数据由 `src/lib/seo.ts` 的 `pageMetadata()` 统一产出：标题、描述、
+canonical、`noindex`、关键词（取自标签）、作者、Twitter 卡片、`og:type=article`
+与发布时间。结构化数据由 `src/components/site/JsonLd.tsx` 输出 WebSite、
+Article、Product 与 BreadcrumbList。
+
+## 数据迁移与备份
+
+结构变更只走迁移：`src/migrations/` 里的迁移按文件名顺序执行，生产环境
+（`NODE_ENV=production`）关闭 Payload 的自动改表。上线顺序固定为
+`payload migrate` → 起服务。
+
+`scripts/backup-db.mjs` 提供 `backup` / `verify` / `restore` 三个子命令，
+退出码 0/1/2/3 分别代表成功、校验失败、参数错误、文件不存在。
+
 ## 静态发布演进
 
 当前前台由 Next.js 服务端读取数据库。下一阶段增加：
@@ -136,6 +162,6 @@ Release → 静态 HTML/CSS → 对象存储 → CDN
 2. 自定义域名验证和 HTTPS。
 3. 发布快照、回滚和 CDN 部署。
 4. 音频转码与时长/大小配额。
-5. 表单与线索收件箱。
-6. 站点成员自助管理。
-7. AI 生成首版页面、文案和 SEO。
+5. 站点成员自助管理。
+6. AI 生成首版页面、文案和 SEO（当前只有不联网的草稿脚手架）。
+7. 下载文件的授权与订单打通（当前只要求登录）。
