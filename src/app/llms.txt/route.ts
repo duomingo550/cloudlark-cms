@@ -146,6 +146,23 @@ export async function GET() {
   if (factLines) {
     blocks.push(`## 可引用事实\n${factLines}`)
   }
+  // AI 要知道「怎么在这站上查东西」，比知道栏目名更有用。
+  if (base) {
+    blocks.push(
+      `## 检索入口\n${bulletLines([
+        `- 站内搜索：${absoluteUrl(base, '/search')}?q=关键词（覆盖工具、资讯、教程、技能、产品等已发布内容）`,
+        `- 全站索引：${absoluteUrl(base, '/sitemap.xml')}`,
+        `- 订阅：${absoluteUrl(base, '/rss.xml')}`,
+      ])}`,
+    )
+  }
+  blocks.push(
+    `## 抓取说明\n${bulletLines([
+      `- 允许各类搜索引擎与 AI 爬虫抓取正文，详见 ${base ? absoluteUrl(base, '/robots.txt') : '/robots.txt'}`,
+      '- 后台路径 /admin 与 /api/ 不在抓取范围内',
+      '- 本文件随内容更新自动重新生成，无需缓存',
+    ])}`,
+  )
   blocks.push(`---\n本文件自动生成，最后更新 ${updatedAt}`)
 
   // 块之间留空行，符合 Markdown 段落规则（爬虫按行读也不会粘成一段）。

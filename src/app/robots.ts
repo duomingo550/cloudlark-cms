@@ -14,7 +14,20 @@ import { absoluteUrl, resolveBaseUrl } from '@/lib/siteUrl'
 export const dynamic = 'force-dynamic'
 
 /** 需要被显式允许的 AI 爬虫（各占一个 User-agent 段）。 */
-const AI_CRAWLERS = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended']
+const AI_CRAWLERS = [
+  'GPTBot',
+  'ClaudeBot',
+  'PerplexityBot',
+  'Google-Extended',
+  // 字节跳动系（豆包等）的抓取器，国内 AI 产品里用得最多。
+  'Bytespider',
+]
+
+/**
+ * 中文搜索引擎单列一段：百度、搜狗、360 对「专门的 User-agent 段」响应更明确，
+ * 只靠 `User-agent: *` 时收录节奏会慢。
+ */
+const CN_CRAWLERS = ['Baiduspider', 'Sogou web spider', '360Spider']
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const site = await getPrimarySite()
@@ -28,6 +41,11 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         allow: '/',
         disallow: ['/admin', '/api/'],
       },
+      ...CN_CRAWLERS.map((userAgent) => ({
+        userAgent,
+        allow: '/',
+        disallow: ['/admin', '/api/'],
+      })),
       ...AI_CRAWLERS.map((userAgent) => ({
         userAgent,
         allow: '/',

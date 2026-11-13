@@ -28,6 +28,20 @@ export function pageMetadata({
   const image = seo.image?.url || site.seo?.image?.url
   const canonical = path ? `${base}${path}` : undefined
 
+  // 标签 → meta keywords。取不到就整条省略：空的 keywords 比没有更糟。
+  const keywords = (Array.isArray(doc?.terms) ? doc.terms : [])
+    .map((term: any) =>
+      typeof term === 'string'
+        ? term.trim()
+        : String(term?.title || term?.name || '').trim(),
+    )
+    .filter(Boolean)
+
+  // 只有资讯详情页声明成 article；其它类型用 website，结构化细节交给 JSON-LD。
+  const isArticle = Boolean(path?.startsWith('/news/'))
+  const publishedTime = isArticle ? isoTime(doc?.publishedDate) : undefined
+  const modifiedTime = isArticle ? isoTime(doc?.updatedAt) : undefined
+
   // 没有显式分享图时回落到动态生成的 /opengraph-image（src/app/opengraph-image.tsx）。
   // 这里写成绝对 URL 而不是相对路径：相对路径由 metadataBase 补全，而 metadataBase 取的是
   // sites.publicUrl 原值 —— 当它指向 localhost 时不会跟随 resolveBaseUrl 的环境变量兜底，
@@ -44,13 +58,30 @@ export function pageMetadata({
     description,
     alternates: canonical ? { canonical } : undefined,
     robots: seo.noindex ? { index: false, follow: false } : undefined,
+    keywords: keywords.length > 0 ? keywords : undefined,
+    authors: site.name ? [{ name: site.name }] : undefined,
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: images.map((item) => item.url),
+    },
     openGraph: {
       title,
       description,
       url: canonical,
       images,
       siteName: site.name,
-      type: 'website',
+      type: isArticle ? 'article' : 'website',
+      ...(publishedTime ? { publishedTime } : {}),
+      ...(modifiedTime ? { modifiedTime } : {}),
     },
   }
+}
+
+/** ISO 8601；非法日期返回 undefined，避免把 "Invalid Date" 写进 meta。 */
+function isoTime(value: unknown) {
+  if (!value) return undefined
+  const date = value instanceof Date ? value : new Date(String(value))
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }

@@ -16,13 +16,25 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCurrentSite()
   if (!site) return { title: '云雀 CMS' }
+  const title = site.seo?.title || site.name
+  const description = site.seo?.description || site.brand?.description || ''
   return {
     title: {
-      default: site.seo?.title || site.name,
+      default: title,
       template: `%s · ${site.name}`,
     },
-    description: site.seo?.description || site.brand?.description || '',
+    description,
     metadataBase: site.publicUrl ? new URL(site.publicUrl) : undefined,
+    // 站点级 OpenGraph 兜底：只给首页与应用级页面用，详情页各自用 pageMetadata 覆盖。
+    // 不写 type 时 Next 不会输出 og:type，微信/社交平台抓取会少一层语义。
+    openGraph: {
+      type: 'website',
+      siteName: site.name,
+      title,
+      description,
+      ...(site.publicUrl ? { url: site.publicUrl } : {}),
+    },
+    twitter: { card: 'summary_large_image' },
   }
 }
 
