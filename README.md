@@ -71,8 +71,15 @@ private for another year.
   comic pages, and file downloads
 - Drafts and version history
 - Audio upload and accessible HTML5 player
+- Music tracks that play an external streaming URL without an uploaded file (WAV supported)
+- Video collection with its own uploads and embed players for Bilibili, YouTube, Vimeo, Tencent, and external links
+- Contact form backed by a `leads` collection: stored in the admin, rate-limited per email and IP, optional webhook notification
 - Full-site keyword search
 - SEO fields and structured page metadata
+- SEO/GEO route set generated at request time: `sitemap.xml`, `robots.txt` (search engines plus AI crawlers), `llms.txt`, `rss.xml`, JSON-LD, and a dynamic Open Graph image that renders Chinese offline
+- Versioned SQLite migrations with schema push disabled in production
+- Database backup, integrity verification, and restore script
+- AI draft scaffold behind a stub provider (no network calls until a key is configured)
 - SQLite for local development and a PostgreSQL adapter for production
 - Host-based site resolution for multi-site deployments
 - Responsive server-rendered frontend
@@ -258,15 +265,19 @@ Add `-IncludeDependencies` to remove `node_modules` as well.
 
 ## Project status
 
-Current release: **v0.1.0-alpha.2**
+Current release: **v0.1.0-alpha.2** on `main`; the working branch
+`codex/cloudlark-workbench` carries the unreleased changes listed in
+[CHANGELOG.md](CHANGELOG.md).
 
 What works:
 
 - Admin login and tenancy model
-- Seeded content and section rendering
-- Search, article detail, tool detail, product detail
-- Audio upload/player path
-- Build, type check, and smoke tests
+- Seeded content and section rendering for eleven sections
+- Search, article detail, tool detail, product detail, video detail, music detail
+- Audio upload/player path, including link-only tracks
+- Contact form writing into `leads`
+- SEO/GEO endpoints (`/sitemap.xml`, `/robots.txt`, `/llms.txt`, `/rss.xml`, `/opengraph-image`)
+- Build, type check, twelve HTTP assertions, and SQLite backup/restore
 
 Known limitations:
 
@@ -275,7 +286,7 @@ Known limitations:
 - No payment, order, or download entitlement system
 - No background audio transcoding
 - No visual page builder
-- No production migration/rollout pipeline
+- Migrations exist, but there is no automated rollout pipeline yet
 
 ## Contributing
 
